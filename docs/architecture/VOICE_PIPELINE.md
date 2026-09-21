@@ -10,7 +10,8 @@ Microphone (frontend repo)
    → text to conversation + LLM/tools
    → POST /api/llm/complete (or LlmService.complete)
    → reply text
-   → TTS (src/voice/ttsService.ts)
+   → POST /api/tts/synthesize (text)
+   → TTS (src/voice/ttsService.ts → OpenAI speech when TTS_PROVIDER=openai)
    → playback in browser
 ```
 
@@ -25,6 +26,8 @@ From centralized config (`getConfig()`):
 | TTS provider / model / key | `TTS_PROVIDER`, `TTS_MODEL`, `TTS_API_KEY` |
 
 Frontend config belongs in the **separate frontend repo**.
+
+Sprint 2 TTS is English-only with a single default voice (`alloy`). Multilingual voices and adaptive delivery profiles are later sprints.
 
 ## STT API (KAN-11)
 
@@ -85,6 +88,39 @@ Optional `toolCalls` when the model requests a tool (with `enableTools: true`). 
 
 Supported provider today: `openai` (chat completions). Model defaults to `gpt-4o-mini` when `LLM_MODEL` is unset.
 
+## TTS API (KAN-13)
+
+`POST /api/tts/synthesize`
+
+Request:
+
+```json
+{
+  "text": "assistant reply to speak",
+  "voice": "alloy"
+}
+```
+
+`voice` is optional (defaults to `alloy`).
+
+Response `200`:
+
+```json
+{
+  "audioBase64": "<base64 mp3 bytes>",
+  "mimeType": "audio/mpeg"
+}
+```
+
+Errors:
+
+| Situation | Code | Status |
+| --------- | ---- | ------ |
+| Missing/empty text | `VALIDATION_ERROR` | 400 |
+| Missing TTS config / provider failure | `EXTERNAL_SERVICE_UNAVAILABLE` | 502 |
+
+Supported provider today: `openai` (audio speech API). Model defaults to `tts-1` when `TTS_MODEL` is unset.
+
 ## Session init
 
 `VoiceService.initializeBrowserSession(language)` requires both STT and TTS providers to be configured. Returns `{ sessionId: browser-*, language }`.
@@ -94,5 +130,5 @@ Supported provider today: `openai` (chat completions). Model defaults to `gpt-4o
 | Layer | Status |
 | ----- | ------ |
 | STT | Wired for OpenAI via `SttService` + HTTP route |
-| TTS | Stub (fail-closed until KAN-13) |
+| TTS | Wired for OpenAI via `TtsService` + HTTP route (KAN-13) |
 | LLM | Wired for OpenAI via `LlmService` + HTTP route (KAN-12) |

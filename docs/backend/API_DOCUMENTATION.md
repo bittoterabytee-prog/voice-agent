@@ -63,6 +63,32 @@ May include `toolCalls` when `enableTools` is true and the model requests a tool
 
 Uses `getConfig().llm` (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`). Failures are fail-closed and must not leak API keys.
 
+### `POST /api/tts/synthesize`
+
+**Purpose:** Convert assistant reply text to playable audio (KAN-13).
+
+**Request body:**
+
+```json
+{
+  "text": "assistant reply to speak",
+  "voice": "alloy"
+}
+```
+
+`voice` is optional (OpenAI default `alloy`).
+
+**Response `200`:**
+
+```json
+{
+  "audioBase64": "<base64>",
+  "mimeType": "audio/mpeg"
+}
+```
+
+Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures are fail-closed and must not leak API keys. Sprint 2 scope is English browser playback, not multilingual or adaptive voice profiles.
+
 ## Planned / domain APIs (not yet exposed)
 
 These behaviors exist at the repository/service layer and will be wrapped by HTTP or tool-calling as needed:

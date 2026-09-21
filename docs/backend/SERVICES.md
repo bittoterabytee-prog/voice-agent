@@ -6,7 +6,7 @@
 | ConversationService | `src/conversation/conversationService.ts` | In-memory turn buffer |
 | LlmService | `src/ai/llmService.ts` | OpenAI chat completions via `getConfig().llm` (KAN-12) |
 | SttService | `src/voice/sttService.ts` | OpenAI Whisper transcription via `getConfig().stt` (KAN-11) |
-| TtsService | `src/voice/ttsService.ts` | Text-to-speech (stub) |
+| TtsService | `src/voice/ttsService.ts` | OpenAI speech synthesis via `getConfig().tts` (KAN-13) |
 | VoiceService | `src/voice/voiceService.ts` | Browser session init requiring STT+TTS config |
 
 ## Repositories (data services)

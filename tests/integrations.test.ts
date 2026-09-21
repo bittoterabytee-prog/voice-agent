@@ -49,12 +49,27 @@ describe("external service failures", () => {
     );
   });
 
-  it("TTS service fails closed without leaking credentials", async () => {
-    const service = new TtsService("tts-secret", "openai", "tts-1");
+  it("TTS service fails closed without leaking credentials on provider outage", async () => {
+    const fetchMock = vi.fn(async () => {
+      throw new Error("network down");
+    });
+    const service = new TtsService({
+      apiKey: "tts-secret",
+      provider: "openai",
+      model: "tts-1",
+      fetchImpl: fetchMock as typeof fetch,
+    });
 
     await expect(service.synthesize({ text: "hello" })).rejects.toBeInstanceOf(
       ExternalServiceError,
     );
+    await expect(service.synthesize({ text: "hello" })).rejects.toThrow(/unavailable/i);
+
+    try {
+      await service.synthesize({ text: "hello" });
+    } catch (error) {
+      expect((error as Error).message).not.toContain("tts-secret");
+    }
   });
 
   it("browser voice requires STT/TTS config, not telephony credentials", async () => {

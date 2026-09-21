@@ -13,7 +13,7 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Primary DB | PostgreSQL 16 |
 | Vector DB (RAG) | Qdrant (Docker) |
 | Config | Zod-validated env via `src/config` |
-| Voice | Browser mic → STT (OpenAI Whisper) / TTS stub; no telephony |
+| Voice | Browser mic → STT (OpenAI Whisper) / TTS (OpenAI speech); no telephony |
 | LLM | OpenAI chat completions in `src/ai` (KAN-12) |
 
 ## Component diagram
@@ -55,7 +55,7 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Appointment persistence | `src/repositories/appointmentRepository.ts` |
 | Appointment agent tool | `src/tools/appointmentTools.ts` |
 | LLM | `src/ai/llmService.ts`, `src/ai/prompts.ts`, `POST /api/llm/complete` |
-| Browser voice / STT / TTS | `src/voice/` |
+| Browser voice / STT / TTS | `src/voice/` (`POST /api/stt/transcribe`, `POST /api/tts/synthesize`) |
 | Schema | `migrations/001_init.sql` |
 
 > **Frontend** lives in a **separate repository**. This backend repo does not contain UI code.
