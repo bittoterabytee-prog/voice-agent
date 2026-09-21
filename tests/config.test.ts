@@ -95,7 +95,11 @@ describe("environment configuration (KAN-8)", () => {
     const config = getConfig();
     expect(config.llm.apiKey).toBe("sk-centralized");
 
-    const service = new LlmService(config.llm.apiKey, config.llm.provider, config.llm.model);
+    const service = new LlmService({
+      apiKey: config.llm.apiKey,
+      provider: config.llm.provider,
+      model: config.llm.model,
+    });
     expect(service).toBeInstanceOf(LlmService);
   });
 

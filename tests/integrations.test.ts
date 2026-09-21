@@ -7,13 +7,27 @@ import { TtsService } from "../src/voice/ttsService";
 import { VoiceService } from "../src/voice/voiceService";
 
 describe("external service failures", () => {
-  it("LLM service fails closed without leaking credentials", async () => {
-    const service = new LlmService("sk-test-secret", "openai", "gpt-4o-mini");
+  it("LLM service fails closed without leaking credentials on provider outage", async () => {
+    const fetchMock = vi.fn(async () => {
+      throw new Error("network down");
+    });
+    const service = new LlmService({
+      apiKey: "sk-test-secret",
+      provider: "openai",
+      model: "gpt-4o-mini",
+      fetchImpl: fetchMock as typeof fetch,
+    });
 
     await expect(service.complete({ prompt: "hello" })).rejects.toBeInstanceOf(
       ExternalServiceError,
     );
     await expect(service.complete({ prompt: "hello" })).rejects.toThrow(/unavailable/i);
+
+    try {
+      await service.complete({ prompt: "hello" });
+    } catch (error) {
+      expect((error as Error).message).not.toContain("sk-test-secret");
+    }
   });
 
   it("STT service fails closed without leaking credentials on provider outage", async () => {

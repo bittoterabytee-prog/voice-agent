@@ -36,6 +36,33 @@ No authentication.
 
 Uses `getConfig().stt` (`STT_PROVIDER`, `STT_API_KEY`, `STT_MODEL`). Failures are fail-closed and must not leak API keys.
 
+### `POST /api/llm/complete`
+
+**Purpose:** Run one LLM conversation turn (KAN-12).
+
+**Request body:**
+
+```json
+{
+  "prompt": "user utterance",
+  "messages": [{ "role": "user", "content": "prior turn" }],
+  "includeSystemPrompt": true,
+  "enableTools": false
+}
+```
+
+Provide `prompt` and/or `messages`. System prompt from `src/ai/prompts.ts` is included by default.
+
+**Response `200`:**
+
+```json
+{ "text": "assistant reply" }
+```
+
+May include `toolCalls` when `enableTools` is true and the model requests a tool. Tool suggestions are not bookings — execute via backend tools only.
+
+Uses `getConfig().llm` (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`). Failures are fail-closed and must not leak API keys.
+
 ## Planned / domain APIs (not yet exposed)
 
 These behaviors exist at the repository/service layer and will be wrapped by HTTP or tool-calling as needed:
