@@ -5,14 +5,15 @@ Before changing this repo, read:
 1. [`PROJECT_RULES.md`](PROJECT_RULES.md)
 2. [`ARCHITECTURE.md`](ARCHITECTURE.md)
 3. [`SYSTEM_FLOW.md`](SYSTEM_FLOW.md)
-4. Topic docs under [`docs/`](docs/)
-5. MCP setup: [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md)
-6. Ticket standards: [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md)
-7. Branch & PR workflow: [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md)
+4. Backend product requirements (SRD): [`docs/backend/SRD_BACKEND.md`](docs/backend/SRD_BACKEND.md)
+5. Topic docs under [`docs/`](docs/)
+6. MCP setup: [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md)
+7. Ticket standards: [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md)
+8. Branch & PR workflow: [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md)
 
 Prefer repository docs + source over assumptions. Backend availability is the source of truth for appointments.
 
-When creating Jira tickets, always include **High-Level Flow**, **Description**, **Test Cases**, and **Acceptance Criteria** per the ticket standards.
+When creating or updating Jira tickets, always include **High-Level Flow**, **Description**, **Test Cases**, and **Acceptance Criteria** per the ticket standards, and align backend scope with [`docs/backend/SRD_BACKEND.md`](docs/backend/SRD_BACKEND.md).
 
 ### Starting implementation work
 

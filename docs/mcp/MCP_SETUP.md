@@ -6,6 +6,7 @@ Configure an MCP-compatible client (Cursor, VS Code, Claude Desktop, etc.) so an
 
 - Repository structure + source discovery
 - Architecture docs under `docs/` and root `ARCHITECTURE.md` / `SYSTEM_FLOW.md` / `PROJECT_RULES.md`
+- Backend product requirements: [`docs/backend/SRD_BACKEND.md`](../backend/SRD_BACKEND.md) (agents should not need the Google SRD re-shared for backend scope)
 - GitHub issues/PRs when needed
 - **Read-only by default** (no accidental writes via MCP)
 
@@ -73,6 +74,8 @@ Requires Docker. Sets `GITHUB_READ_ONLY=1`.
 | TC-007 | Booking changes must follow `PROJECT_RULES.md` (backend source of truth) |
 | TC-008 | Attempted write via MCP should be unavailable in read-only mode |
 | TC-010 | Ask “Explain how this project works” → `ARCHITECTURE.md` + `README.md` |
+| TC-011 | Ask “What should the backend build for appointments?” → `docs/backend/SRD_BACKEND.md` |
+| TC-012 | Ask to draft/update a backend Jira ticket → uses SRD + `TICKET_STANDARDS.md` |
 
 ## Security
 
@@ -85,3 +88,4 @@ Requires Docker. Sets `GITHUB_READ_ONLY=1`.
 - [`ARCHITECTURE.md`](../../ARCHITECTURE.md)
 - [`PROJECT_RULES.md`](../../PROJECT_RULES.md)
 - [`SYSTEM_FLOW.md`](../../SYSTEM_FLOW.md)
+- [`../backend/SRD_BACKEND.md`](../backend/SRD_BACKEND.md)

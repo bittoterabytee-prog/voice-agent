@@ -1,5 +1,7 @@
 # Backend Structure
 
+Product requirements (what to build): [`SRD_BACKEND.md`](SRD_BACKEND.md).
+
 ```
 src/
 ├── config/           Typed env config (Zod)

@@ -78,6 +78,7 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Voice pipeline | [`docs/architecture/VOICE_PIPELINE.md`](docs/architecture/VOICE_PIPELINE.md) |
 | Conversation flow | [`docs/architecture/CONVERSATION_FLOW.md`](docs/architecture/CONVERSATION_FLOW.md) |
 | Backend / API / services | [`docs/backend/`](docs/backend/) |
+| Backend SRD (what to build) | [`docs/backend/SRD_BACKEND.md`](docs/backend/SRD_BACKEND.md) |
 | Database | [`docs/database/DATABASE_SCHEMA.md`](docs/database/DATABASE_SCHEMA.md) |
 | AI / RAG / tools | [`docs/ai/`](docs/ai/) |
 | Voice behavior | [`docs/voice/`](docs/voice/) |
