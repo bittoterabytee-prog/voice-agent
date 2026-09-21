@@ -86,9 +86,11 @@ Then: ...
 3. Backend tickets reference `src/` paths; frontend tickets belong to the **separate frontend repo** but may still be tracked on the same Jira board.
 4. After creating tickets, add key IDs to [`docs/process/BACKLOG.md`](BACKLOG.md) and mention them in `ARCHITECTURE.md` when they become active work.
 5. Prefer Story work type unless the board standard says otherwise.
+6. Implementation follows [`BRANCH_AND_PR.md`](BRANCH_AND_PR.md): confirm ticket key → named branch → PR on push.
 
 ## Related docs
 
+- [`BRANCH_AND_PR.md`](BRANCH_AND_PR.md)
 - [`ARCHITECTURE.md`](../../ARCHITECTURE.md)
 - [`SYSTEM_FLOW.md`](../../SYSTEM_FLOW.md)
 - [`PROJECT_RULES.md`](../../PROJECT_RULES.md)

@@ -84,4 +84,5 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Testing | [`docs/testing/TESTING_STRATEGY.md`](docs/testing/TESTING_STRATEGY.md) |
 | MCP setup | [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md) |
 | Ticket standards | [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md) |
+| Branch & PR workflow | [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md) |
 | Voice backlog | [`docs/process/BACKLOG.md`](docs/process/BACKLOG.md) |

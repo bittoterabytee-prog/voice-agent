@@ -4,7 +4,7 @@ Backend foundation for the AI Voice Agent POC ([KAN-5](https://voiceagentai.atla
 
 The API is the central application layer for calls, conversation state, AI/LLM integrations, browser STT/TTS, appointment tools, and PostgreSQL persistence.
 
-**Project knowledge for AI/MCP clients:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`SYSTEM_FLOW.md`](SYSTEM_FLOW.md) · [`PROJECT_RULES.md`](PROJECT_RULES.md) · [`docs/`](docs/) · [MCP setup](docs/mcp/MCP_SETUP.md) · [Ticket standards](docs/process/TICKET_STANDARDS.md)
+**Project knowledge for AI/MCP clients:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`SYSTEM_FLOW.md`](SYSTEM_FLOW.md) · [`PROJECT_RULES.md`](PROJECT_RULES.md) · [`docs/`](docs/) · [MCP setup](docs/mcp/MCP_SETUP.md) · [Ticket standards](docs/process/TICKET_STANDARDS.md) · [Branch & PR](docs/process/BRANCH_AND_PR.md)
 
 ## Stack
 
