@@ -14,6 +14,28 @@
 
 No authentication.
 
+### `POST /api/stt/transcribe`
+
+**Purpose:** Convert browser-captured audio to text (KAN-11).
+
+**Request body:**
+
+```json
+{
+  "audioBase64": "<base64>",
+  "mimeType": "audio/webm",
+  "fileName": "clip.webm"
+}
+```
+
+**Response `200`:**
+
+```json
+{ "text": "..." }
+```
+
+Uses `getConfig().stt` (`STT_PROVIDER`, `STT_API_KEY`, `STT_MODEL`). Failures are fail-closed and must not leak API keys.
+
 ## Planned / domain APIs (not yet exposed)
 
 These behaviors exist at the repository/service layer and will be wrapped by HTTP or tool-calling as needed:

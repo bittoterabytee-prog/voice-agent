@@ -12,6 +12,13 @@ export class AppError extends Error {
   }
 }
 
+export class ValidationError extends AppError {
+  constructor(message: string) {
+    super(message, 400, "VALIDATION_ERROR", true);
+    this.name = "ValidationError";
+  }
+}
+
 export class ExternalServiceError extends AppError {
   readonly service: string;
 

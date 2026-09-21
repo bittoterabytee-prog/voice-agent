@@ -5,7 +5,7 @@
 | CallService | `src/services/callService.ts` | Create ACTIVE call with caller number + language |
 | ConversationService | `src/conversation/conversationService.ts` | In-memory turn buffer |
 | LlmService | `src/ai/llmService.ts` | LLM completions (stub) |
-| SttService | `src/voice/sttService.ts` | Speech-to-text (stub) |
+| SttService | `src/voice/sttService.ts` | OpenAI Whisper transcription via `getConfig().stt` (KAN-11) |
 | TtsService | `src/voice/ttsService.ts` | Text-to-speech (stub) |
 | VoiceService | `src/voice/voiceService.ts` | Browser session init requiring STT+TTS config |
 
