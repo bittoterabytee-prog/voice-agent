@@ -1,6 +1,6 @@
 # Prompts
 
-Prompt templates will live with the LLM integration. Until then:
+System prompt lives in `src/ai/prompts.ts` (`CLINIC_SYSTEM_PROMPT`) and is prepended by `LlmService` unless `includeSystemPrompt: false`.
 
 ## System prompt principles
 
@@ -10,9 +10,11 @@ Prompt templates will live with the LLM integration. Until then:
 4. If the user asks you to wait, acknowledge and enter wait behavior.
 5. Escalate to human handoff when requested or when confidence is low.
 6. Prefer the patient’s preferred language when known.
+7. Identify as an AI assistant when asked.
+8. Keep replies concise for spoken playback.
 
-## Where to add prompts
+## Where prompts live
 
-- Prefer a dedicated module under `src/ai/` (e.g. `prompts.ts`) when implementing.
+- `src/ai/prompts.ts` — clinic system prompt (KAN-12)
 - Do not embed secrets in prompts.
 - Document major prompt changes here when behavior changes.

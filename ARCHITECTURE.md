@@ -13,8 +13,8 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Primary DB | PostgreSQL 16 |
 | Vector DB (RAG) | Qdrant (Docker) |
 | Config | Zod-validated env via `src/config` |
-| Voice | Browser mic → STT / TTS (stubs; no telephony) |
-| LLM | Provider-agnostic stub in `src/ai` |
+| Voice | Browser mic → STT (OpenAI Whisper) / TTS stub; no telephony |
+| LLM | OpenAI chat completions in `src/ai` (KAN-12) |
 
 ## Component diagram
 
@@ -34,9 +34,9 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
                      ┌─────────────────────────────────────┼────────────────┐
                      ▼                                     ▼                ▼
               ┌────────────┐                        ┌────────────┐   ┌────────────┐
-              │ PostgreSQL │                        │ LLM stub   │   │ Qdrant     │
+              │ PostgreSQL │                        │ LLM        │   │ Qdrant     │
               │ patients,  │                        │ src/ai     │   │ VECTOR_DB  │
-              │ doctors,   │                        └────────────┘   └────────────┘
+              │ doctors,   │                        │ (OpenAI)   │   └────────────┘
               │ appointments,
               │ calls, conversation_states,
               │ call_events
@@ -54,7 +54,7 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Conversation state machine (DB) | `src/models/conversationState.ts`, `src/repositories/conversationStateRepository.ts` |
 | Appointment persistence | `src/repositories/appointmentRepository.ts` |
 | Appointment agent tool | `src/tools/appointmentTools.ts` |
-| LLM | `src/ai/llmService.ts` |
+| LLM | `src/ai/llmService.ts`, `src/ai/prompts.ts`, `POST /api/llm/complete` |
 | Browser voice / STT / TTS | `src/voice/` |
 | Schema | `migrations/001_init.sql` |
 
