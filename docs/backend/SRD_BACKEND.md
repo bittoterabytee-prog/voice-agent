@@ -290,7 +290,7 @@ Representative SRD cases TC-001…TC-020 (booking, mind-change, Hinglish, no ava
 ## 15. How agents should use this doc
 
 1. **Before coding:** read this + `PROJECT_RULES.md` + relevant `docs/backend/*` and schema.
-2. **Creating/updating Jira:** derive High-Level Flow, Description, Test Cases, and Acceptance Criteria from the matching sections above; link this file in the ticket.
+2. **Creating/updating Jira:** derive High-Level Flow, Description, Test Cases, and Acceptance Criteria from the matching sections above; link this file in the ticket. Place tickets in the **current sprint** per [`../process/SPRINT_PLAN.md`](../process/SPRINT_PLAN.md).
 3. **MCP / GitHub:** this file lives in-repo so agents do not need the Google Doc re-shared for backend scope.
 4. **Conflicts:** if implementation docs (`ARCHITECTURE.md`, schema, API docs) differ from the Google Doc, prefer **repo docs + migrations + source** for “what exists today,” and use this SRD for “what to build next.” Update this file when product requirements change.
 

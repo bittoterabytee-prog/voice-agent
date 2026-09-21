@@ -2,7 +2,7 @@
 
 High-level architecture for the **AI Voice Agent** browser-based POC.
 
-Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-7](https://voiceagentai.atlassian.net/browse/KAN-7), [KAN-8](https://voiceagentai.atlassian.net/browse/KAN-8), [KAN-9](https://voiceagentai.atlassian.net/browse/KAN-9). Voice conversation backlog: [`docs/process/BACKLOG.md`](docs/process/BACKLOG.md) (KAN-10–KAN-18).
+Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-7](https://voiceagentai.atlassian.net/browse/KAN-7), [KAN-8](https://voiceagentai.atlassian.net/browse/KAN-8), [KAN-9](https://voiceagentai.atlassian.net/browse/KAN-9). **Current sprint:** Sprint 2 — Basic Voice Agent ([`docs/process/SPRINT_PLAN.md`](docs/process/SPRINT_PLAN.md)). Voice backlog: [`docs/process/BACKLOG.md`](docs/process/BACKLOG.md) (KAN-10–KAN-18).
 
 ## Stack
 
@@ -85,5 +85,6 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Testing | [`docs/testing/TESTING_STRATEGY.md`](docs/testing/TESTING_STRATEGY.md) |
 | MCP setup | [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md) |
 | Ticket standards | [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md) |
+| Sprint plan (current + roadmap) | [`docs/process/SPRINT_PLAN.md`](docs/process/SPRINT_PLAN.md) |
+| Voice / sprint backlog | [`docs/process/BACKLOG.md`](docs/process/BACKLOG.md) |
 | Branch & PR workflow | [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md) |
-| Voice backlog | [`docs/process/BACKLOG.md`](docs/process/BACKLOG.md) |

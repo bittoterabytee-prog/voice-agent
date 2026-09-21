@@ -16,7 +16,7 @@ Rules for humans and AI agents working on the AI Voice Agent POC.
 12. **Configuration is centralized.** Application code reads `getConfig()` / `loadConfig()` — do not scatter `process.env` reads.
 13. **When architectural behavior changes**, update the matching docs under `docs/` and root `ARCHITECTURE.md` / `SYSTEM_FLOW.md`.
 14. **MCP GitHub access is read-only by default.** Do not enable write toolsets unless explicitly approved.
-15. **New Jira tickets must include** High-Level Flow, Description, Test Cases, and Acceptance Criteria — see [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md). Backend tickets must align with [`docs/backend/SRD_BACKEND.md`](docs/backend/SRD_BACKEND.md).
+15. **New Jira tickets must include** High-Level Flow, Description, Test Cases, and Acceptance Criteria — see [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md). Backend tickets must align with [`docs/backend/SRD_BACKEND.md`](docs/backend/SRD_BACKEND.md). Place tickets in the **current sprint** from [`docs/process/SPRINT_PLAN.md`](docs/process/SPRINT_PLAN.md).
 16. **Before implementing, confirm the Jira ticket key** (ask if missing). Use branch names `feat/{title}`, `fix/{title}`, or `bugfix/{title}` (include the ticket key in the branch). When pushing, **open a PR** — see [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md).
 17. **Every change must cover tests and knowledge:**
     - Read and satisfy the ticket’s **Test Cases** and **Acceptance Criteria**.
