@@ -25,6 +25,7 @@ src/
 | Method | Path | Handler |
 | ------ | ---- | ------- |
 | GET | `/health` | `{ status: "ok" }` |
+| POST | `/api/stt/transcribe` | Speech-to-text (`audioBase64` → `{ text }`) |
 
 Additional appointment/call HTTP routes will be added as the POC grows; repositories already exist.
 

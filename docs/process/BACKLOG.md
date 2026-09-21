@@ -5,7 +5,7 @@ Stories for the browser voice conversation slice. Created following [`TICKET_STA
 | # | Summary | Owner | Jira |
 | - | ------- | ----- | ---- |
 | 7 | Implement Browser Microphone & Audio Capture | Frontend | [KAN-10](https://voiceagentai.atlassian.net/browse/KAN-10) |
-| 8 | Implement Speech-to-Text Integration | Backend/AI | [KAN-11](https://voiceagentai.atlassian.net/browse/KAN-11) |
+| 8 | Implement Speech-to-Text Integration | Backend/AI | [KAN-11](https://voiceagentai.atlassian.net/browse/KAN-11) (PR: `feat/KAN-11-speech-to-text-integration`) |
 | 9 | Implement LLM Conversation Service | Backend/AI | [KAN-12](https://voiceagentai.atlassian.net/browse/KAN-12) |
 | 10 | Implement Text-to-Speech Integration | Backend/AI | [KAN-13](https://voiceagentai.atlassian.net/browse/KAN-13) |
 | 11 | Implement Real-Time Voice Conversation Pipeline | Backend | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) |

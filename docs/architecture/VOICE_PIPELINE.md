@@ -3,9 +3,10 @@
 Browser-first audio pipeline (no telephony).
 
 ```
-Microphone
+Microphone (frontend repo)
    → capture audio blob/stream
-   → STT (src/voice/sttService.ts)
+   → POST /api/stt/transcribe (audioBase64)
+   → STT (src/voice/sttService.ts → OpenAI Whisper when STT_PROVIDER=openai)
    → text to conversation + LLM/tools
    → reply text
    → TTS (src/voice/ttsService.ts)
@@ -21,12 +22,45 @@ From centralized config (`getConfig()`):
 | STT provider / model / key | `STT_PROVIDER`, `STT_MODEL`, `STT_API_KEY` |
 | TTS provider / model / key | `TTS_PROVIDER`, `TTS_MODEL`, `TTS_API_KEY` |
 
-Frontend hints for STT/TTS providers belong in the **separate frontend repo**, not this backend.
+Frontend config belongs in the **separate frontend repo**.
+
+## STT API (KAN-11)
+
+`POST /api/stt/transcribe`
+
+Request:
+
+```json
+{
+  "audioBase64": "<base64 audio bytes or data-URL>",
+  "mimeType": "audio/webm",
+  "fileName": "clip.webm"
+}
+```
+
+Response `200`:
+
+```json
+{ "text": "transcribed utterance" }
+```
+
+Errors:
+
+| Situation | Code | Status |
+| --------- | ---- | ------ |
+| Missing/empty/invalid audio | `VALIDATION_ERROR` | 400 |
+| Missing STT config / provider failure | `EXTERNAL_SERVICE_UNAVAILABLE` | 502 |
+
+Supported provider today: `openai` (Whisper transcriptions API). Model defaults to `whisper-1` when `STT_MODEL` is unset.
 
 ## Session init
 
 `VoiceService.initializeBrowserSession(language)` requires both STT and TTS providers to be configured. Returns `{ sessionId: browser-*, language }`.
 
-## Current implementation status
+## Implementation status
 
-STT/TTS/LLM methods validate configuration then throw `ExternalServiceError` (“unavailable”) until real providers are wired. This is intentional fail-closed behavior.
+| Layer | Status |
+| ----- | ------ |
+| STT | Wired for OpenAI via `SttService` + HTTP route |
+| TTS | Stub (fail-closed until KAN-13) |
+| LLM | Stub (fail-closed until KAN-12) |

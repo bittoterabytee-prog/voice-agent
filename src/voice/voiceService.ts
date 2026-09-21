@@ -6,15 +6,24 @@ export type BrowserVoiceSession = {
   language: string;
 };
 
+export type VoiceServiceOptions = {
+  sttProvider?: string;
+  ttsProvider?: string;
+};
+
 /**
  * Coordinates browser microphone audio with STT/TTS configuration.
  * Replaces telephony-oriented voice provider wiring for the POC.
  */
 export class VoiceService {
-  constructor(
-    private readonly sttProvider = getConfig().stt.provider,
-    private readonly ttsProvider = getConfig().tts.provider,
-  ) {}
+  private readonly sttProvider?: string;
+  private readonly ttsProvider?: string;
+
+  constructor(options: VoiceServiceOptions = {}) {
+    const config = getConfig();
+    this.sttProvider = "sttProvider" in options ? options.sttProvider : config.stt.provider;
+    this.ttsProvider = "ttsProvider" in options ? options.ttsProvider : config.tts.provider;
+  }
 
   async initializeBrowserSession(language = "en"): Promise<BrowserVoiceSession> {
     if (!this.sttProvider || !this.ttsProvider) {

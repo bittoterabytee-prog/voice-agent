@@ -12,6 +12,7 @@
 | ---- | -------- |
 | Health | `tests/health.test.ts` |
 | Config (KAN-8) | `tests/config.test.ts` |
+| STT (KAN-11) | `tests/stt.test.ts` |
 | Errors | `tests/errorHandler.test.ts` |
 | Integrations fail-closed | `tests/integrations.test.ts` |
 | Postgres schema/repos | `tests/db/postgres.test.ts` |

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { LlmService } from "../src/ai/llmService";
 import { requestJson } from "../src/integrations/httpClient";
 import { ExternalServiceError } from "../src/utils/errors";
@@ -16,11 +16,22 @@ describe("external service failures", () => {
     await expect(service.complete({ prompt: "hello" })).rejects.toThrow(/unavailable/i);
   });
 
-  it("STT service fails closed without leaking credentials", async () => {
-    const service = new SttService("stt-secret", "openai", "whisper-1");
+  it("STT service fails closed without leaking credentials on provider outage", async () => {
+    const fetchMock = vi.fn(async () => {
+      throw new Error("network down");
+    });
+    const service = new SttService({
+      apiKey: "stt-secret",
+      provider: "openai",
+      model: "whisper-1",
+      fetchImpl: fetchMock as typeof fetch,
+    });
 
     await expect(service.transcribe({ audio: new Uint8Array([1, 2, 3]) })).rejects.toBeInstanceOf(
       ExternalServiceError,
+    );
+    await expect(service.transcribe({ audio: new Uint8Array([1, 2, 3]) })).rejects.toThrow(
+      /unavailable/i,
     );
   });
 
@@ -33,7 +44,7 @@ describe("external service failures", () => {
   });
 
   it("browser voice requires STT/TTS config, not telephony credentials", async () => {
-    const service = new VoiceService(undefined, undefined);
+    const service = new VoiceService({ sttProvider: undefined, ttsProvider: undefined });
 
     await expect(service.initializeBrowserSession()).rejects.toBeInstanceOf(ExternalServiceError);
     await expect(service.initializeBrowserSession()).rejects.toThrow(/STT and TTS/i);
