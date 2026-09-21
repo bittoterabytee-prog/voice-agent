@@ -87,6 +87,7 @@ Then: ...
 4. After creating tickets, add key IDs to [`docs/process/BACKLOG.md`](BACKLOG.md) and mention them in `ARCHITECTURE.md` when they become active work.
 5. Prefer Story work type unless the board standard says otherwise.
 6. Implementation follows [`BRANCH_AND_PR.md`](BRANCH_AND_PR.md): confirm ticket key → named branch → PR on push.
+7. Implementers must **check ticket test cases**, **add/update automated tests**, and **update knowledge docs** for the change ([`TESTING_STRATEGY.md`](../testing/TESTING_STRATEGY.md)).
 
 ## Related docs
 

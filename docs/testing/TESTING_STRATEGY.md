@@ -16,12 +16,26 @@
 | Integrations fail-closed | `tests/integrations.test.ts` |
 | Postgres schema/repos | `tests/db/postgres.test.ts` |
 
-## Expectations for new work
+## Mandatory for every change
 
-1. Add/adjust tests with each feature.
-2. Config/validation changes must extend `tests/config.test.ts`.
-3. Schema changes need migration + DB tests.
-4. Never assert real secrets in tests — use placeholders.
+1. **Read the Jira ticket test cases** (TC-001…) and acceptance criteria.
+2. **Add or update automated tests** under `tests/` for each testable TC / behavior change.
+   - Prefer naming or commenting tests with the ticket key and TC id when useful (e.g. `KAN-11 TC-002`).
+3. **Run `npm test`** before push/PR; fix failures before asking for review.
+4. **Update knowledge** in the same change set when behavior, APIs, schema, config, or flows change (`docs/`, `ARCHITECTURE.md`, `SYSTEM_FLOW.md`, etc.).
+5. Never assert real secrets in tests — use placeholders only.
+
+Shipping code without covering ticket test cases (or without updating docs for the change) is incomplete. See [`docs/process/BRANCH_AND_PR.md`](../process/BRANCH_AND_PR.md).
+
+## Expectations by change type
+
+| Change | Tests | Knowledge |
+| ------ | ----- | --------- |
+| Config / env | Extend `tests/config.test.ts` | `.env.example`, README config table |
+| Schema / repos | `tests/db/postgres.test.ts` + migration | `docs/database/DATABASE_SCHEMA.md` |
+| STT / TTS / LLM | Service + fail-closed tests | `docs/voice/*`, `docs/ai/*`, voice pipeline docs |
+| HTTP API | Route/handler tests | `docs/backend/API_DOCUMENTATION.md` |
+| Conversation / session | Unit + DB state tests | `SYSTEM_FLOW.md`, `docs/architecture/CONVERSATION_FLOW.md` |
 
 ## Manual checks
 

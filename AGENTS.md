@@ -19,3 +19,10 @@ When creating Jira tickets, always include **High-Level Flow**, **Description**,
 1. If no Jira key is provided, **ask for the ticket number** before coding.
 2. Create a branch: `feat/{KEY}-{short-title}`, `fix/{KEY}-{short-title}`, or `bugfix/{KEY}-{short-title}`.
 3. When pushing shared work, **open a pull request** (do not only push the branch). See [`BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md).
+
+### Required on every change
+
+1. **Check ticket test cases** — map each TC / acceptance criterion to work or an explicit “N/A” with reason.
+2. **Add or update tests** under `tests/` for new/changed behavior; run `npm test` before opening the PR.
+3. **Update knowledge** — keep `docs/` and root architecture/flow/rules docs accurate for whatever you changed (APIs, flows, config, schema, voice, process).
+4. Do not treat docs or tests as optional follow-ups.

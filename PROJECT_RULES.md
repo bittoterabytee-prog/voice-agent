@@ -18,5 +18,10 @@ Rules for humans and AI agents working on the AI Voice Agent POC.
 14. **MCP GitHub access is read-only by default.** Do not enable write toolsets unless explicitly approved.
 15. **New Jira tickets must include** High-Level Flow, Description, Test Cases, and Acceptance Criteria — see [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md).
 16. **Before implementing, confirm the Jira ticket key** (ask if missing). Use branch names `feat/{title}`, `fix/{title}`, or `bugfix/{title}` (include the ticket key in the branch). When pushing, **open a PR** — see [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md).
+17. **Every change must cover tests and knowledge:**
+    - Read and satisfy the ticket’s **Test Cases** and **Acceptance Criteria**.
+    - **Add or update automated tests** under `tests/` for the behavior you change (do not ship code without tests when behavior is testable).
+    - **Update project knowledge** (`docs/`, `ARCHITECTURE.md`, `SYSTEM_FLOW.md`, `PROJECT_RULES.md`, process docs) so docs match the implementation.
+    - See [`docs/testing/TESTING_STRATEGY.md`](docs/testing/TESTING_STRATEGY.md) and [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md).
 
 See also: [`docs/`](docs/), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SYSTEM_FLOW.md`](SYSTEM_FLOW.md).

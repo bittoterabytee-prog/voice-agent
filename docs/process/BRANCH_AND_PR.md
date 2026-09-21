@@ -12,6 +12,20 @@ How agents and developers start work, name branches, and open PRs for this repos
 
 Do not start implementation on `main` for ticketed work. Always use a feature/fix branch.
 
+## During implementation (mandatory)
+
+1. **Check the ticket test cases** (TC-001…) and acceptance criteria before and while coding.
+2. **Add or update automated tests** in `tests/` so ticket scenarios are covered (or document why a TC is manual-only).
+3. **Update knowledge docs** for every behavioral or structural change:
+   - Flows → `SYSTEM_FLOW.md` / `docs/architecture/*` / `docs/voice/*`
+   - APIs/services → `docs/backend/*`
+   - Schema → `docs/database/*` + migration
+   - Config → `.env.example` + README config table + `docs` as needed
+   - Process → `docs/process/*`
+4. Run `npm test` (and lint when touching TS) before push/PR.
+
+Code without tests (when testable) or without matching docs is incomplete.
+
 ## Branch naming
 
 Use a prefix that matches the type of change, then a short kebab-case title derived from the ticket summary.
@@ -80,8 +94,11 @@ Examples:
 - Jira: https://voiceagentai.atlassian.net/browse/{KEY}
 
 ## Test plan
-- [ ] Unit/integration tests added or updated
-- [ ] Manual check against ticket test cases / acceptance criteria
+- [ ] Ticket test cases reviewed and covered (list TC-xxx)
+- [ ] Automated tests added/updated under `tests/`
+- [ ] `npm test` passed
+- [ ] Knowledge docs updated for this change
+- [ ] Manual check against acceptance criteria
 ```
 
 Use `gh pr create` when available. Link the Jira ticket in the summary.
@@ -96,8 +113,10 @@ Use `gh pr create` when available. Link the Jira ticket in the summary.
 
 - [ ] Asked for / confirmed Jira ticket key
 - [ ] Branch named `feat|fix|bugfix/{KEY}-{short-title}`
+- [ ] Ticket test cases checked and covered
+- [ ] Automated tests added/updated; `npm test` passes
+- [ ] Knowledge docs updated to match the change
 - [ ] Implementation matches ticket AC
-- [ ] Tests updated
 - [ ] Pushed branch **and** opened PR with matching title
 - [ ] No secrets in the PR
 
