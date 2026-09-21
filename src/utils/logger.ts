@@ -1,9 +1,9 @@
 import pino from "pino";
-import { loadConfig } from "../config";
+import { getConfig } from "../config";
 
-const config = loadConfig();
+const config = getConfig();
 
 export const logger = pino({
-  level: config.LOG_LEVEL,
-  base: { service: "voice-agent-backend" },
+  level: config.app.logLevel,
+  base: { service: config.app.name },
 });

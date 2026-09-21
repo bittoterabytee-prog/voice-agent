@@ -5,10 +5,10 @@ let pool: Pool | undefined;
 
 export function getDatabaseUrl(env: NodeJS.ProcessEnv = process.env): string {
   const config = loadConfig(env);
-  if (!config.DATABASE_URL) {
+  if (!config.database.url) {
     throw new Error("DATABASE_URL is required to connect to PostgreSQL");
   }
-  return config.DATABASE_URL;
+  return config.database.url;
 }
 
 export function getPool(): Pool {

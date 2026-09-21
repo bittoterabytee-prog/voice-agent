@@ -2,6 +2,10 @@ node_modules/
 dist/
 coverage/
 .env
+.env.*
+!.env.example
+!**/.env.example
+.cursor/mcp.json
 data/
 *.log
 .DS_Store

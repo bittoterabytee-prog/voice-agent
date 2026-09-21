@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { LlmService } from "../src/ai/llmService";
 import { requestJson } from "../src/integrations/httpClient";
 import { ExternalServiceError } from "../src/utils/errors";
+import { SttService } from "../src/voice/sttService";
+import { TtsService } from "../src/voice/ttsService";
 import { VoiceService } from "../src/voice/voiceService";
 
 describe("external service failures", () => {
   it("LLM service fails closed without leaking credentials", async () => {
-    const service = new LlmService("sk-test-secret", "https://example.invalid/v1");
+    const service = new LlmService("sk-test-secret", "openai", "gpt-4o-mini");
 
     await expect(service.complete({ prompt: "hello" })).rejects.toBeInstanceOf(
       ExternalServiceError,
@@ -14,12 +16,27 @@ describe("external service failures", () => {
     await expect(service.complete({ prompt: "hello" })).rejects.toThrow(/unavailable/i);
   });
 
-  it("voice service fails closed without leaking credentials", async () => {
-    const service = new VoiceService("voice-secret", "https://example.invalid");
+  it("STT service fails closed without leaking credentials", async () => {
+    const service = new SttService("stt-secret", "openai", "whisper-1");
 
-    await expect(
-      service.sendEvent({ callId: "call-1", event: "start", payload: {} }),
-    ).rejects.toBeInstanceOf(ExternalServiceError);
+    await expect(service.transcribe({ audio: new Uint8Array([1, 2, 3]) })).rejects.toBeInstanceOf(
+      ExternalServiceError,
+    );
+  });
+
+  it("TTS service fails closed without leaking credentials", async () => {
+    const service = new TtsService("tts-secret", "openai", "tts-1");
+
+    await expect(service.synthesize({ text: "hello" })).rejects.toBeInstanceOf(
+      ExternalServiceError,
+    );
+  });
+
+  it("browser voice requires STT/TTS config, not telephony credentials", async () => {
+    const service = new VoiceService(undefined, undefined);
+
+    await expect(service.initializeBrowserSession()).rejects.toBeInstanceOf(ExternalServiceError);
+    await expect(service.initializeBrowserSession()).rejects.toThrow(/STT and TTS/i);
   });
 
   it("HTTP integration maps network failures to a safe error", async () => {

@@ -6,6 +6,9 @@ export default defineConfig({
     restoreMocks: true,
     env: {
       NODE_ENV: "test",
+      APP_ENV: "test",
+      APP_NAME: "voice-agent",
+      APP_PORT: "3000",
       PORT: "3000",
       LOG_LEVEL: "silent",
     },

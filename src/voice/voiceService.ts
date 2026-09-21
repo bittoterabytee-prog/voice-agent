@@ -1,23 +1,34 @@
+import { getConfig } from "../config";
 import { ExternalServiceError } from "../utils/errors";
 
-export type VoiceEvent = {
-  callId: string;
-  event: string;
-  payload: Record<string, unknown>;
+export type BrowserVoiceSession = {
+  sessionId: string;
+  language: string;
 };
 
+/**
+ * Coordinates browser microphone audio with STT/TTS configuration.
+ * Replaces telephony-oriented voice provider wiring for the POC.
+ */
 export class VoiceService {
   constructor(
-    private readonly apiKey?: string,
-    private readonly baseUrl?: string,
+    private readonly sttProvider = getConfig().stt.provider,
+    private readonly ttsProvider = getConfig().tts.provider,
   ) {}
 
-  async sendEvent(event: VoiceEvent): Promise<void> {
-    if (!this.apiKey || !this.baseUrl) {
-      throw new ExternalServiceError("voice", "Voice provider is not configured");
+  async initializeBrowserSession(language = "en"): Promise<BrowserVoiceSession> {
+    if (!this.sttProvider || !this.ttsProvider) {
+      throw new ExternalServiceError(
+        "voice",
+        "Browser voice requires STT and TTS configuration (no telephony provider needed)",
+      );
     }
 
-    void event;
-    throw new ExternalServiceError("voice", "Voice provider is unavailable");
+    return {
+      sessionId: `browser-${Date.now()}`,
+      language,
+    };
   }
 }
+
+export const voiceService = new VoiceService();

@@ -1,0 +1,30 @@
+# Services
+
+| Service | Path | Role |
+| ------- | ---- | ---- |
+| CallService | `src/services/callService.ts` | Create ACTIVE call with caller number + language |
+| ConversationService | `src/conversation/conversationService.ts` | In-memory turn buffer |
+| LlmService | `src/ai/llmService.ts` | LLM completions (stub) |
+| SttService | `src/voice/sttService.ts` | Speech-to-text (stub) |
+| TtsService | `src/voice/ttsService.ts` | Text-to-speech (stub) |
+| VoiceService | `src/voice/voiceService.ts` | Browser session init requiring STT+TTS config |
+
+## Repositories (data services)
+
+| Repository | Entity |
+| ---------- | ------ |
+| `patientRepository` | patients |
+| `doctorRepository` | doctors |
+| `appointmentRepository` | appointments |
+| `callRepository` | calls |
+| `conversationStateRepository` | conversation_states |
+| `callEventRepository` | call_events |
+| `conversationRepository` | in-memory conversation ids (legacy/scaffold) |
+
+## Tools
+
+| Tool | Path | Notes |
+| ---- | ---- | ----- |
+| `lookupAppointment` | `src/tools/appointmentTools.ts` | Placeholder; must later query backend only |
+
+**Rule:** Services and tools must use `getConfig()` for credentials, never hardcode secrets.

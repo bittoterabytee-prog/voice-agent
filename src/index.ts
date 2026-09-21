@@ -5,7 +5,7 @@ import { logger } from "./utils/logger";
 
 async function start(): Promise<void> {
   const config = loadConfig();
-  if (!config.DATABASE_URL) {
+  if (!config.database.url) {
     throw new Error("Invalid application configuration: DATABASE_URL is required");
   }
 
@@ -13,8 +13,11 @@ async function start(): Promise<void> {
   logger.info("Connected to PostgreSQL");
 
   const app = createApp();
-  const server = app.listen(config.PORT, () => {
-    logger.info({ port: config.PORT, env: config.NODE_ENV }, "Backend started");
+  const server = app.listen(config.app.port, () => {
+    logger.info(
+      { port: config.app.port, env: config.app.env, name: config.app.name },
+      "Backend started",
+    );
   });
 
   function shutdown(signal: string): void {
