@@ -3,8 +3,8 @@
 ## Layers
 
 1. **Frontend (browser)** — mic/audio UI in a **separate frontend repository**. This backend exposes HTTP/API (and optional WS) for that client.
-2. **API** — Express app (`src/app.ts`). Public routes: `GET /health`, `POST /api/stt/transcribe`, `POST /api/llm/complete`.
-3. **Domain services** — `callService`, `conversationService`, voice STT + LLM (OpenAI), TTS stub, appointment tools.
+2. **API** — Express app (`src/app.ts`). Public routes: `GET /health`, `POST /api/stt/transcribe`, `POST /api/llm/complete`, `POST /api/tts/synthesize`.
+3. **Domain services** — `callService`, `conversationService`, voice STT + TTS + LLM (OpenAI), appointment tools.
 4. **Persistence** — PostgreSQL via repositories; migrations in `migrations/`.
 5. **Integrations** — `httpClient` for outbound HTTP; unwired providers fail closed.
 6. **RAG** — Qdrant configured via `VECTOR_DB_URL` (Docker service `qdrant`).

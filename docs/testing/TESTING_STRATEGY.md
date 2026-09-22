@@ -14,6 +14,7 @@
 | Config (KAN-8) | `tests/config.test.ts` |
 | STT (KAN-11) | `tests/stt.test.ts` |
 | LLM (KAN-12) | `tests/llm.test.ts` |
+| TTS (KAN-13) | `tests/tts.test.ts` |
 | Errors | `tests/errorHandler.test.ts` |
 | Integrations fail-closed | `tests/integrations.test.ts` |
 | Postgres schema/repos | `tests/db/postgres.test.ts` |

@@ -31,7 +31,7 @@ Conversation state row created (ACTIVE_CONVERSATION)
 Audio Processing (browser)
       │
       ▼
-STT (src/voice/sttService.ts)
+STT (src/voice/sttService.ts → POST /api/stt/transcribe)
       │
       ▼
 Conversation Manager
@@ -49,6 +49,7 @@ Conversation Manager
         ▼                ▼
    LLM Response      Tool Call
    src/ai/*          src/tools/appointmentTools.ts
+   POST /api/llm/complete
                           │
                           ▼
                     Backend repositories
@@ -57,7 +58,8 @@ Conversation Manager
                       PostgreSQL
                           │
                           ▼
-                    TTS → play audio in browser
+                    TTS (src/voice/ttsService.ts → POST /api/tts/synthesize)
+                    → play audio in browser
 ```
 
 ## Wait / “hold on” flow

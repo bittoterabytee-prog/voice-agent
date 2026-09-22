@@ -18,7 +18,8 @@ Natural browser voice dialog for clinic scheduling without telephony.
 ## Code entry points
 
 - Session: `src/voice/voiceService.ts`
-- STT/TTS: `src/voice/sttService.ts`, `src/voice/ttsService.ts`
+- STT: `src/voice/sttService.ts` (`POST /api/stt/transcribe`)
+- TTS: `src/voice/ttsService.ts` (`POST /api/tts/synthesize`) — Sprint 2 English OpenAI speech
 - Events: `call_events` types in `src/models/enums.ts`
 
 ## Adding a new voice behavior

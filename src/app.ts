@@ -4,6 +4,7 @@ import { errorHandler, notFoundHandler, requestLogger } from "./middleware/error
 import { healthRouter } from "./routes/health";
 import { llmRouter } from "./routes/llm";
 import { sttRouter } from "./routes/stt";
+import { ttsRouter } from "./routes/tts";
 
 export function createApp() {
   loadConfig();
@@ -15,6 +16,7 @@ export function createApp() {
   app.use(healthRouter);
   app.use(sttRouter);
   app.use(llmRouter);
+  app.use(ttsRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 
