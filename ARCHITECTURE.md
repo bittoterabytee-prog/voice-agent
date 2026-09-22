@@ -55,7 +55,7 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Appointment persistence | `src/repositories/appointmentRepository.ts` |
 | Appointment agent tool | `src/tools/appointmentTools.ts` |
 | LLM | `src/ai/llmService.ts`, `src/ai/prompts.ts`, `POST /api/llm/complete` |
-| Browser voice / STT / TTS | `src/voice/` (`POST /api/stt/transcribe`, `POST /api/tts/synthesize`) |
+| Browser voice / STT / TTS | `src/voice/` (`POST /api/voice/turn`, `POST /api/stt/transcribe`, `POST /api/tts/synthesize`) |
 | Schema | `migrations/001_init.sql` |
 
 > **Frontend** lives in a **separate repository**. This backend repo does not contain UI code.

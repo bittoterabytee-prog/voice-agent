@@ -89,6 +89,41 @@ Uses `getConfig().llm` (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`). Failures ar
 
 Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures are fail-closed and must not leak API keys. Sprint 2 scope is English browser playback, not multilingual or adaptive voice profiles.
 
+### `POST /api/voice/turn`
+
+**Purpose:** Run one realtime voice turn end-to-end (KAN-14): STT → LLM → TTS.
+
+**Request body:**
+
+```json
+{
+  "audioBase64": "<base64>",
+  "mimeType": "audio/webm",
+  "fileName": "clip.webm",
+  "sessionId": "browser-...",
+  "conversationId": "<optional>",
+  "messages": [{ "role": "user", "content": "optional prior context" }],
+  "voice": "alloy"
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "transcript": "...",
+  "replyText": "...",
+  "audioBase64": "<base64>",
+  "mimeType": "audio/mpeg",
+  "conversationId": "<uuid>",
+  "sessionId": "browser-..."
+}
+```
+
+If TTS fails after LLM succeeds, `audioBase64` may be omitted and `ttsError` is set (`code`, `message`, `service`). STT/LLM failures return `502` `EXTERNAL_SERVICE_UNAVAILABLE`. No telephony provider is required.
+
+See [`docs/architecture/VOICE_PIPELINE.md`](../architecture/VOICE_PIPELINE.md) for the full contract (HTTP today; WebSocket streaming deferred).
+
 ## Planned / domain APIs (not yet exposed)
 
 These behaviors exist at the repository/service layer and will be wrapped by HTTP or tool-calling as needed:

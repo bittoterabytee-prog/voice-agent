@@ -15,6 +15,7 @@
 | STT (KAN-11) | `tests/stt.test.ts` |
 | LLM (KAN-12) | `tests/llm.test.ts` |
 | TTS (KAN-13) | `tests/tts.test.ts` |
+| Voice pipeline (KAN-14) | `tests/voicePipeline.test.ts` |
 | Errors | `tests/errorHandler.test.ts` |
 | Integrations fail-closed | `tests/integrations.test.ts` |
 | Postgres schema/repos | `tests/db/postgres.test.ts` |
