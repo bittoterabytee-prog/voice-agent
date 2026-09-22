@@ -31,6 +31,14 @@ Conversation state row created (ACTIVE_CONVERSATION)
 Audio Processing (browser)
       │
       ▼
+Preferred Sprint 2 path — one orchestrated turn (KAN-14):
+  POST /api/voice/turn → VoicePipelineService
+    STT → ConversationService turns → LLM → TTS → play in browser
+  (step APIs /api/stt|/api/llm|/api/tts remain available)
+
+Longer-term flow (tools, RAG, DB state — later tickets):
+      │
+      ▼
 STT (src/voice/sttService.ts → POST /api/stt/transcribe)
       │
       ▼

@@ -25,8 +25,8 @@ Complete: config, DB, MCP, architecture/process docs, backend SRD knowledge. See
 | 7 | Implement Browser Microphone & Audio Capture | Frontend | Done | [KAN-10](https://voiceagentai.atlassian.net/browse/KAN-10) |
 | 8 | Implement Speech-to-Text Integration | Backend/AI | Done | [KAN-11](https://voiceagentai.atlassian.net/browse/KAN-11) |
 | 9 | Implement LLM Conversation Service | Backend/AI | Done | [KAN-12](https://voiceagentai.atlassian.net/browse/KAN-12) |
-| 10 | Implement Text-to-Speech Integration | Backend/AI | In Progress | [KAN-13](https://voiceagentai.atlassian.net/browse/KAN-13) |
-| 11 | Implement Real-Time Voice Conversation Pipeline | Backend | To Do | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) |
+| 10 | Implement Text-to-Speech Integration | Backend/AI | Done | [KAN-13](https://voiceagentai.atlassian.net/browse/KAN-13) |
+| 11 | Implement Real-Time Voice Conversation Pipeline | Backend | In Progress | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) |
 | 12 | Implement Conversation Session & Context Management | Backend | To Do | [KAN-15](https://voiceagentai.atlassian.net/browse/KAN-15) |
 | 13 | Implement Voice Agent UI | Frontend | To Do | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) |
 | 14 | Implement End-to-End Browser Voice Conversation | Full Stack | To Do | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) |

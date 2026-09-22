@@ -5,6 +5,7 @@ import { healthRouter } from "./routes/health";
 import { llmRouter } from "./routes/llm";
 import { sttRouter } from "./routes/stt";
 import { ttsRouter } from "./routes/tts";
+import { voiceRouter } from "./routes/voice";
 
 export function createApp() {
   loadConfig();
@@ -17,6 +18,7 @@ export function createApp() {
   app.use(sttRouter);
   app.use(llmRouter);
   app.use(ttsRouter);
+  app.use(voiceRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 
