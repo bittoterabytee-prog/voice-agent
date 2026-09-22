@@ -31,8 +31,9 @@ Complete: config, DB, MCP, architecture/process docs, backend SRD knowledge. See
 | 13 | Implement Voice Agent UI | Frontend | To Do | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) |
 | 14 | Implement End-to-End Browser Voice Conversation | Full Stack | To Do | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) |
 | 15 | Add Voice Pipeline Logging & Error Handling | Backend | To Do | [KAN-18](https://voiceagentai.atlassian.net/browse/KAN-18) |
+| 16 | Add Postman collection for all HTTP APIs | Backend | In Progress | [KAN-21](https://voiceagentai.atlassian.net/browse/KAN-21) |
 
-**Epic (Sprint 2 container):** Create Epic **Sprint 2 — Basic Voice Agent** in Jira and set Parent on KAN-10–KAN-18 (label `sprint-2`). Until then, treat those keys as the active sprint To Do set per this doc.
+**Epic (Sprint 2 container):** Create Epic **Sprint 2 — Basic Voice Agent** in Jira and set Parent on KAN-10–KAN-18 / KAN-21 (label `sprint-2`). Until then, treat those keys as the active sprint To Do set per this doc.
 
 **Dependency order:** **KAN-10 → KAN-11/12/13 → KAN-15 → KAN-14 → KAN-16 → KAN-17**, with **KAN-18** in parallel once the pipeline exists.
 

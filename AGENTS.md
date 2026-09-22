@@ -11,6 +11,7 @@ Before changing this repo, read:
 7. MCP setup: [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md)
 8. Ticket standards: [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md)
 9. Branch & PR workflow: [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md)
+10. Postman APIs: [`docs/process/POSTMAN.md`](docs/process/POSTMAN.md) + [`postman/`](postman/) — update the collection when adding HTTP routes
 
 Prefer repository docs + source over assumptions. Backend availability is the source of truth for appointments.
 
@@ -27,4 +28,5 @@ When creating or updating Jira tickets, always include **High-Level Flow**, **De
 1. **Check ticket test cases** — map each TC / acceptance criterion to work or an explicit “N/A” with reason.
 2. **Add or update tests** under `tests/` for new/changed behavior; run `npm test` before opening the PR.
 3. **Update knowledge** — keep `docs/` and root architecture/flow/rules docs accurate for whatever you changed (APIs, flows, config, schema, voice, process).
-4. Do not treat docs or tests as optional follow-ups.
+4. **Update Postman** — if you add/change HTTP routes under `src/routes/`, update `postman/Voice-Agent-API.postman_collection.json` with Success/Fail examples in the same change (see [`docs/process/POSTMAN.md`](docs/process/POSTMAN.md)).
+5. Do not treat docs, tests, or Postman as optional follow-ups.

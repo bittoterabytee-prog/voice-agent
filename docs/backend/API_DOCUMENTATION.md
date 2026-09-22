@@ -1,5 +1,7 @@
 # API Documentation
 
+**Postman:** Import [`postman/Voice-Agent-API.postman_collection.json`](../../postman/Voice-Agent-API.postman_collection.json) + [`postman/Local.postman_environment.json`](../../postman/Local.postman_environment.json). Keep the collection updated when routes change — [`docs/process/POSTMAN.md`](../process/POSTMAN.md) (KAN-21).
+
 ## Current endpoints
 
 ### `GET /health`
@@ -203,4 +205,15 @@ These behaviors exist at the repository/service layer and will be wrapped by HTT
 
 ## Error shape
 
-Unhandled/`AppError` responses go through `errorHandler` and must not include secrets or raw provider payloads.
+Unhandled/`AppError` responses go through `errorHandler` and must not include secrets or raw provider payloads:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR | EXTERNAL_SERVICE_UNAVAILABLE | NOT_FOUND | INTERNAL_ERROR | ...",
+    "message": "human-readable message when expose=true"
+  }
+}
+```
+
+Saved Success/Fail examples for each current endpoint live in the Postman collection.

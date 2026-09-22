@@ -34,6 +34,7 @@ src/
 ├── app.ts            Express application factory
 └── index.ts          Process entrypoint
 docs/                 Architecture, API, DB, AI, voice, MCP knowledge base
+postman/              Postman collection + local environment (KAN-21)
 migrations/           SQL schema migrations
 tests/                Unit and database tests
 ```
@@ -87,6 +88,8 @@ Root knowledge files: `ARCHITECTURE.md`, `SYSTEM_FLOW.md`, `PROJECT_RULES.md`, `
    ```bash
    curl http://localhost:3000/health
    ```
+
+   Or import the Postman collection: [`postman/`](postman/) — see [`docs/process/POSTMAN.md`](docs/process/POSTMAN.md).
 
 Expected response:
 
