@@ -60,8 +60,9 @@ Do **not** open new Foundation tickets unless something foundational is missing.
 | P1 | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) | Voice agent UI | Frontend | To Do |
 | P2 | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) | End-to-end browser voice conversation | Full Stack | To Do |
 | P2 | [KAN-18](https://voiceagentai.atlassian.net/browse/KAN-18) | Voice pipeline logging & error handling | Backend | To Do |
+| P2 | [KAN-21](https://voiceagentai.atlassian.net/browse/KAN-21) | Postman collection for HTTP APIs | Backend | In Progress |
 
-**Suggested order:** KAN-10 → KAN-11 / KAN-12 / KAN-13 → KAN-15 → KAN-14 → KAN-16 → KAN-17, with KAN-18 in parallel after pipeline exists.
+**Suggested order:** KAN-10 → KAN-11 / KAN-12 / KAN-13 → KAN-15 → KAN-14 → KAN-16 → KAN-17, with KAN-18 in parallel after pipeline exists. KAN-21 can land anytime after routes exist.
 
 **Sprint 2 out of scope** (defer to later sprints): Hindi/Hinglish switching, book/cancel/reschedule tools, wait/hold & barge-in productization, RAG corpus, adaptive TTS profiles, 300-scenario suite.
 

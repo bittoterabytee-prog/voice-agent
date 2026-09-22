@@ -15,6 +15,7 @@
 | STT (KAN-11) | `tests/stt.test.ts` |
 | LLM (KAN-12) | `tests/llm.test.ts` |
 | TTS (KAN-13) | `tests/tts.test.ts` |
+| Postman sync (KAN-21) | `tests/postmanCollection.test.ts` |
 | Errors | `tests/errorHandler.test.ts` |
 | Integrations fail-closed | `tests/integrations.test.ts` |
 | Postgres schema/repos | `tests/db/postgres.test.ts` |
@@ -37,7 +38,7 @@ Shipping code without covering ticket test cases (or without updating docs for t
 | Config / env | Extend `tests/config.test.ts` | `.env.example`, README config table |
 | Schema / repos | `tests/db/postgres.test.ts` + migration | `docs/database/DATABASE_SCHEMA.md` |
 | STT / TTS / LLM | Service + fail-closed tests | `docs/voice/*`, `docs/ai/*`, voice pipeline docs |
-| HTTP API | Route/handler tests | `docs/backend/API_DOCUMENTATION.md` |
+| HTTP API | Route/handler tests + Postman collection sync | `docs/backend/API_DOCUMENTATION.md`, `postman/`, [`docs/process/POSTMAN.md`](../process/POSTMAN.md) |
 | Conversation / session | Unit + DB state tests | `SYSTEM_FLOW.md`, `docs/architecture/CONVERSATION_FLOW.md` |
 
 ## Manual checks

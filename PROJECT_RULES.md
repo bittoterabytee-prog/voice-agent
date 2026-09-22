@@ -22,6 +22,7 @@ Rules for humans and AI agents working on the AI Voice Agent POC.
     - Read and satisfy the ticket’s **Test Cases** and **Acceptance Criteria**.
     - **Add or update automated tests** under `tests/` for the behavior you change (do not ship code without tests when behavior is testable).
     - **Update project knowledge** (`docs/`, `ARCHITECTURE.md`, `SYSTEM_FLOW.md`, `PROJECT_RULES.md`, process docs) so docs match the implementation.
+    - **When HTTP routes change**, update the Postman collection (`postman/`) with Success/Fail examples — [`docs/process/POSTMAN.md`](docs/process/POSTMAN.md).
     - See [`docs/testing/TESTING_STRATEGY.md`](docs/testing/TESTING_STRATEGY.md) and [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md).
 
 See also: [`docs/`](docs/), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SYSTEM_FLOW.md`](SYSTEM_FLOW.md).

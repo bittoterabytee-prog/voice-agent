@@ -1,0 +1,19 @@
+---
+description: Keep Postman collection updated whenever HTTP routes change
+globs: src/routes/**/*.ts,src/controllers/**/*.ts,docs/backend/API_DOCUMENTATION.md,postman/**
+alwaysApply: false
+---
+
+# Postman API collection
+
+When you add, remove, or change an HTTP route under `src/routes/` (or its controller contract):
+
+1. Update [`docs/backend/API_DOCUMENTATION.md`](../../docs/backend/API_DOCUMENTATION.md).
+2. Update [`postman/Voice-Agent-API.postman_collection.json`](../../postman/Voice-Agent-API.postman_collection.json):
+   - Matching request (method, path, body)
+   - At least one **Success** and one **Fail** saved example (health: Success only; use Errors folder for shared 404)
+   - Error bodies must match `{ "error": { "code", "message" } }` — no secrets
+3. Follow [`docs/process/POSTMAN.md`](../../docs/process/POSTMAN.md).
+4. Ensure `tests/postmanCollection.test.ts` still passes (`npm test`).
+
+Do not treat the Postman collection as an optional follow-up.

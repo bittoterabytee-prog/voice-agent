@@ -1,0 +1,417 @@
+{
+  "info": {
+    "_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "Voice Agent API",
+    "description": "HTTP APIs for the AI Voice Agent backend (KAN-21).\n\nImport with `postman/Local.postman_environment.json`.\nKeep this collection in sync when adding routes — see `docs/process/POSTMAN.md`.\n\nDo not store API keys or secrets here; the server reads them from env via `getConfig()`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Liveness check for local/Docker verification."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/health"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STT",
+      "item": [
+        {
+          "name": "POST /api/stt/transcribe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audioBase64\": \"AQID\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/stt/transcribe",
+            "description": "Convert browser-captured audio to text (KAN-11).\n\nReplace `audioBase64` with a real base64 audio clip for a live success run."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"audioBase64\": \"<base64-audio>\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\"\n}"
+                },
+                "url": "{{baseUrl}}/api/stt/transcribe"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"text\": \"I would like to book an appointment\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/stt/transcribe"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"audioBase64 is required\"\n  }\n}"
+            },
+            {
+              "name": "Fail — 502 EXTERNAL_SERVICE_UNAVAILABLE",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"audioBase64\": \"AQID\",\n  \"mimeType\": \"audio/webm\"\n}"
+                },
+                "url": "{{baseUrl}}/api/stt/transcribe"
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"EXTERNAL_SERVICE_UNAVAILABLE\",\n    \"message\": \"Speech-to-text provider is unavailable\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LLM",
+      "item": [
+        {
+          "name": "POST /api/llm/complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Hi, what are your clinic hours?\",\n  \"messages\": [],\n  \"includeSystemPrompt\": true,\n  \"enableTools\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/llm/complete",
+            "description": "Run one LLM conversation turn (KAN-12).\n\nProvide `prompt` and/or `messages`."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Hi, what are your clinic hours?\",\n  \"includeSystemPrompt\": true,\n  \"enableTools\": false\n}"
+                },
+                "url": "{{baseUrl}}/api/llm/complete"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"text\": \"Our clinic is open Monday through Friday, 9 AM to 5 PM. How can I help you today?\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/llm/complete"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"prompt or messages is required\"\n  }\n}"
+            },
+            {
+              "name": "Fail — 502 EXTERNAL_SERVICE_UNAVAILABLE",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Hi\"\n}"
+                },
+                "url": "{{baseUrl}}/api/llm/complete"
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"EXTERNAL_SERVICE_UNAVAILABLE\",\n    \"message\": \"LLM provider is unavailable\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TTS",
+      "item": [
+        {
+          "name": "POST /api/tts/synthesize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Your appointment is confirmed for tomorrow at 10 AM.\",\n  \"voice\": \"alloy\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/tts/synthesize",
+            "description": "Convert assistant reply text to playable audio (KAN-13).\n\n`voice` is optional (OpenAI default `alloy`)."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"Your appointment is confirmed for tomorrow at 10 AM.\",\n  \"voice\": \"alloy\"\n}"
+                },
+                "url": "{{baseUrl}}/api/tts/synthesize"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"audioBase64\": \"<base64-mpeg-audio>\",\n  \"mimeType\": \"audio/mpeg\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/tts/synthesize"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"text is required\"\n  }\n}"
+            },
+            {
+              "name": "Fail — 502 EXTERNAL_SERVICE_UNAVAILABLE",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"Hello\"\n}"
+                },
+                "url": "{{baseUrl}}/api/tts/synthesize"
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"EXTERNAL_SERVICE_UNAVAILABLE\",\n    \"message\": \"Text-to-speech provider is unavailable\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Errors",
+      "item": [
+        {
+          "name": "GET /does-not-exist (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/does-not-exist",
+            "description": "Shared not-found example for the global `notFoundHandler`."
+          },
+          "response": [
+            {
+              "name": "Fail — 404 NOT_FOUND",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/does-not-exist"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"The requested resource was not found\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
