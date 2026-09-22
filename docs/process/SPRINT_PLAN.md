@@ -55,7 +55,7 @@ Do **not** open new Foundation tickets unless something foundational is missing.
 | P0 | [KAN-11](https://voiceagentai.atlassian.net/browse/KAN-11) | Speech-to-text integration | Backend/AI | Done |
 | P0 | [KAN-12](https://voiceagentai.atlassian.net/browse/KAN-12) | LLM conversation service | Backend/AI | Done |
 | P0 | [KAN-13](https://voiceagentai.atlassian.net/browse/KAN-13) | Text-to-speech integration | Backend/AI | Done |
-| P1 | [KAN-15](https://voiceagentai.atlassian.net/browse/KAN-15) | Conversation session & context management | Backend | To Do |
+| P1 | [KAN-15](https://voiceagentai.atlassian.net/browse/KAN-15) | Conversation session & context management | Backend | In Progress |
 | P1 | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) | Real-time voice conversation pipeline | Backend | In Progress |
 | P1 | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) | Voice agent UI | Frontend | To Do |
 | P2 | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) | End-to-end browser voice conversation | Full Stack | To Do |

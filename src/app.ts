@@ -3,6 +3,7 @@ import { loadConfig } from "./config";
 import { errorHandler, notFoundHandler, requestLogger } from "./middleware/errorHandler";
 import { healthRouter } from "./routes/health";
 import { llmRouter } from "./routes/llm";
+import { sessionRouter } from "./routes/session";
 import { sttRouter } from "./routes/stt";
 import { ttsRouter } from "./routes/tts";
 import { voiceRouter } from "./routes/voice";
@@ -15,6 +16,7 @@ export function createApp() {
   app.use(express.json({ limit: "15mb" }));
   app.use(requestLogger);
   app.use(healthRouter);
+  app.use(sessionRouter);
   app.use(sttRouter);
   app.use(llmRouter);
   app.use(ttsRouter);

@@ -23,7 +23,8 @@
 
 | Data | Storage |
 | ---- | ------- |
-| Turn-by-turn messages | In-memory `ConversationService` map |
+| Turn-by-turn messages | `ConversationService` map + `call_events` (`USER_SPEECH` / `AGENT_RESPONSE`) for rehydrate |
+| Session start / wait / resume | `SessionService` → `calls` + `conversation_states` + `call_events` |
 | State machine + events | PostgreSQL |
 | Call metadata | PostgreSQL `calls` |
 
