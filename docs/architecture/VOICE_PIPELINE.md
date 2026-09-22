@@ -2,6 +2,76 @@
 
 Browser-first audio pipeline (no telephony).
 
+## Orchestrated turn (KAN-14)
+
+Preferred frontend path for Sprint 2: one HTTP turn that wires STT → LLM → TTS.
+
+```
+Microphone (frontend repo)
+   → capture audio blob
+   → POST /api/voice/turn (audioBase64)
+   → VoicePipelineService (src/voice/voicePipelineService.ts)
+        ├─ SttService
+        ├─ SessionService when callId set (KAN-15 durable state + context)
+        ├─ ConversationService (in-memory turns; fallback without callId)
+        ├─ LlmService
+        └─ TtsService (TTS failure still returns transcript + replyText)
+   → playback audioBase64 in browser (or show text if ttsError)
+```
+
+WebSocket streaming is **not** required for Sprint 2. The realtime contract today is HTTP `POST /api/voice/turn`. A future WS contract may stream partial transcripts/audio; until then clients should use the HTTP turn API (or the step APIs below).
+
+### `POST /api/voice/turn`
+
+Request:
+
+```json
+{
+  "audioBase64": "<base64 audio bytes or data-URL>",
+  "mimeType": "audio/webm",
+  "fileName": "clip.webm",
+  "sessionId": "browser-...",
+  "conversationId": "<optional prior conversation>",
+  "callId": "<optional durable session from POST /api/sessions>",
+  "messages": [{ "role": "user", "content": "optional extra context" }],
+  "voice": "alloy"
+}
+```
+
+Success `200`:
+
+```json
+{
+  "transcript": "user utterance",
+  "replyText": "assistant reply",
+  "audioBase64": "<base64 mp3>",
+  "mimeType": "audio/mpeg",
+  "conversationId": "<uuid>",
+  "sessionId": "browser-..."
+}
+```
+
+When TTS fails after a successful LLM reply (TC-004), response is still `200` with `transcript` + `replyText` and:
+
+```json
+{
+  "ttsError": {
+    "code": "EXTERNAL_SERVICE_UNAVAILABLE",
+    "message": "...",
+    "service": "tts"
+  }
+}
+```
+
+| Situation | Code | Status |
+| --------- | ---- | ------ |
+| Missing/empty/invalid audio | `VALIDATION_ERROR` | 400 |
+| STT or LLM provider failure | `EXTERNAL_SERVICE_UNAVAILABLE` | 502 |
+
+## Step APIs (also available)
+
+Clients may still call STT / LLM / TTS independently:
+
 ```
 Microphone (frontend repo)
    → capture audio blob/stream
@@ -132,3 +202,5 @@ Supported provider today: `openai` (audio speech API). Model defaults to `tts-1`
 | STT | Wired for OpenAI via `SttService` + HTTP route |
 | TTS | Wired for OpenAI via `TtsService` + HTTP route (KAN-13) |
 | LLM | Wired for OpenAI via `LlmService` + HTTP route (KAN-12) |
+| Turn pipeline | Wired via `VoicePipelineService` + `POST /api/voice/turn` (KAN-14) |
+| WebSocket streaming | Deferred (document-only until a later ticket) |

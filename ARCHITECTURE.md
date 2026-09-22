@@ -49,13 +49,14 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | -------- | ---------------- |
 | How does config load? | `src/config/index.ts` |
 | Health / HTTP entry | `src/app.ts`, `src/routes/health.ts` |
-| Call lifecycle | `src/services/callService.ts`, `src/repositories/callRepository.ts` |
-| Conversation turns (in-memory) | `src/conversation/conversationService.ts` |
+| Call lifecycle | `src/services/callService.ts`, `src/services/sessionService.ts`, `src/repositories/callRepository.ts` |
+| Conversation turns (in-memory + event rehydrate) | `src/conversation/conversationService.ts` |
+| Conversation session APIs | `POST/GET /api/sessions`, `src/services/sessionService.ts` (KAN-15) |
 | Conversation state machine (DB) | `src/models/conversationState.ts`, `src/repositories/conversationStateRepository.ts` |
 | Appointment persistence | `src/repositories/appointmentRepository.ts` |
 | Appointment agent tool | `src/tools/appointmentTools.ts` |
 | LLM | `src/ai/llmService.ts`, `src/ai/prompts.ts`, `POST /api/llm/complete` |
-| Browser voice / STT / TTS | `src/voice/` (`POST /api/stt/transcribe`, `POST /api/tts/synthesize`) |
+| Browser voice / STT / TTS | `src/voice/` (`POST /api/voice/turn`, `POST /api/stt/transcribe`, `POST /api/tts/synthesize`) |
 | Schema | `migrations/001_init.sql` |
 
 > **Frontend** lives in a **separate repository**. This backend repo does not contain UI code.

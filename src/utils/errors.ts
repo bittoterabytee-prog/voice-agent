@@ -36,6 +36,13 @@ export class InvalidRelationshipError extends AppError {
   }
 }
 
+export class NotFoundError extends AppError {
+  constructor(message = "The requested resource was not found") {
+    super(message, 404, "NOT_FOUND", true);
+    this.name = "NotFoundError";
+  }
+}
+
 export function isPostgresForeignKeyError(error: unknown): boolean {
   return (
     typeof error === "object" &&
