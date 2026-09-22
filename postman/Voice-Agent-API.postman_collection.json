@@ -1,0 +1,856 @@
+{
+  "info": {
+    "_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "Voice Agent API",
+    "description": "HTTP APIs for the AI Voice Agent backend (KAN-21).\n\nImport with `postman/Local.postman_environment.json`.\nKeep this collection in sync when adding routes — see `docs/process/POSTMAN.md`.\n\nDo not store API keys or secrets here; the server reads them from env via `getConfig()`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "callId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Liveness check for local/Docker verification."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/health"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STT",
+      "item": [
+        {
+          "name": "POST /api/stt/transcribe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audioBase64\": \"AQID\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/stt/transcribe",
+            "description": "Convert browser-captured audio to text (KAN-11).\n\nReplace `audioBase64` with a real base64 audio clip for a live success run."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"audioBase64\": \"<base64-audio>\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\"\n}"
+                },
+                "url": "{{baseUrl}}/api/stt/transcribe"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"text\": \"I would like to book an appointment\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/stt/transcribe"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"audioBase64 is required\"\n  }\n}"
+            },
+            {
+              "name": "Fail — 502 EXTERNAL_SERVICE_UNAVAILABLE",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"audioBase64\": \"AQID\",\n  \"mimeType\": \"audio/webm\"\n}"
+                },
+                "url": "{{baseUrl}}/api/stt/transcribe"
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"EXTERNAL_SERVICE_UNAVAILABLE\",\n    \"message\": \"Speech-to-text provider is unavailable\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LLM",
+      "item": [
+        {
+          "name": "POST /api/llm/complete",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Hi, what are your clinic hours?\",\n  \"messages\": [],\n  \"includeSystemPrompt\": true,\n  \"enableTools\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/llm/complete",
+            "description": "Run one LLM conversation turn (KAN-12).\n\nProvide `prompt` and/or `messages`."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Hi, what are your clinic hours?\",\n  \"includeSystemPrompt\": true,\n  \"enableTools\": false\n}"
+                },
+                "url": "{{baseUrl}}/api/llm/complete"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"text\": \"Our clinic is open Monday through Friday, 9 AM to 5 PM. How can I help you today?\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/llm/complete"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"prompt or messages is required\"\n  }\n}"
+            },
+            {
+              "name": "Fail — 502 EXTERNAL_SERVICE_UNAVAILABLE",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"prompt\": \"Hi\"\n}"
+                },
+                "url": "{{baseUrl}}/api/llm/complete"
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"EXTERNAL_SERVICE_UNAVAILABLE\",\n    \"message\": \"LLM provider is unavailable\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TTS",
+      "item": [
+        {
+          "name": "POST /api/tts/synthesize",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Your appointment is confirmed for tomorrow at 10 AM.\",\n  \"voice\": \"alloy\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/tts/synthesize",
+            "description": "Convert assistant reply text to playable audio (KAN-13).\n\n`voice` is optional (OpenAI default `alloy`)."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"Your appointment is confirmed for tomorrow at 10 AM.\",\n  \"voice\": \"alloy\"\n}"
+                },
+                "url": "{{baseUrl}}/api/tts/synthesize"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"audioBase64\": \"<base64-mpeg-audio>\",\n  \"mimeType\": \"audio/mpeg\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/tts/synthesize"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"text is required\"\n  }\n}"
+            },
+            {
+              "name": "Fail — 502 EXTERNAL_SERVICE_UNAVAILABLE",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"Hello\"\n}"
+                },
+                "url": "{{baseUrl}}/api/tts/synthesize"
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"EXTERNAL_SERVICE_UNAVAILABLE\",\n    \"message\": \"Text-to-speech provider is unavailable\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sessions",
+      "item": [
+        {
+          "name": "POST /api/sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"callerNumber\": \"browser\",\n  \"language\": \"en\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/sessions",
+            "description": "Start a durable conversation session (KAN-15). Creates `calls` + `conversation_states` + CALL_STARTED."
+          },
+          "response": [
+            {
+              "name": "Success — 201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"callerNumber\": \"browser\",\n  \"language\": \"en\"\n}"
+                },
+                "url": "{{baseUrl}}/api/sessions"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"callId\": \"<uuid>\",\n  \"conversationId\": \"<uuid>\",\n  \"callerNumber\": \"browser\",\n  \"language\": \"en\",\n  \"callStatus\": \"ACTIVE\",\n  \"currentState\": \"ACTIVE_CONVERSATION\",\n  \"intent\": null,\n  \"turns\": [],\n  \"messages\": []\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"language\": 123\n}"
+                },
+                "url": "{{baseUrl}}/api/sessions"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"language must be a string\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /api/sessions/:callId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sessions/:callId",
+            "description": "Load session snapshot (state + turn messages for LLM context)."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/:callId"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"callId\": \"<uuid>\",\n  \"conversationId\": \"<uuid>\",\n  \"currentState\": \"ACTIVE_CONVERSATION\",\n  \"messages\": []\n}"
+            },
+            {
+              "name": "Fail — 404 NOT_FOUND",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/00000000-0000-4000-8000-000000000099"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Session not found: 00000000-0000-4000-8000-000000000099\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/sessions/:callId/turns",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"I need an appointment on Tuesday\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/sessions/:callId/turns",
+            "description": "Append a turn. User text auto-detects wait/resume (KAN-15)."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"text\": \"I need an appointment on Tuesday\"\n}"
+                },
+                "url": "{{baseUrl}}/api/sessions/:callId/turns"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"callId\": \"<uuid>\",\n  \"action\": \"continue\",\n  \"currentState\": \"ACTIVE_CONVERSATION\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"I need an appointment on Tuesday\" }\n  ]\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/sessions/:callId/turns"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"text or content is required\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/sessions/:callId/wait",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/sessions/:callId/wait",
+            "description": "Explicit wait: ACTIVE → USER_REQUESTED_WAIT → WAITING_FOR_USER + WAIT_STARTED."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/:callId/wait"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"callId\": \"<uuid>\",\n  \"currentState\": \"WAITING_FOR_USER\"\n}"
+            },
+            {
+              "name": "Fail — 404 NOT_FOUND",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/00000000-0000-4000-8000-000000000099/wait"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Session not found: 00000000-0000-4000-8000-000000000099\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/sessions/:callId/resume",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/sessions/:callId/resume",
+            "description": "Resume after wait: CALLER_RETURNED → ACTIVE_CONVERSATION + CALLER_RETURNED event."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/:callId/resume"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"callId\": \"<uuid>\",\n  \"currentState\": \"ACTIVE_CONVERSATION\"\n}"
+            },
+            {
+              "name": "Fail — 404 NOT_FOUND",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/00000000-0000-4000-8000-000000000099/resume"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Session not found: 00000000-0000-4000-8000-000000000099\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/sessions/:callId/complete",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/sessions/:callId/complete",
+            "description": "Complete session: CALL_COMPLETED + CALL_ENDED."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/:callId/complete"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"callId\": \"<uuid>\",\n  \"currentState\": \"CALL_COMPLETED\",\n  \"callStatus\": \"COMPLETED\"\n}"
+            },
+            {
+              "name": "Fail — 404 NOT_FOUND",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/00000000-0000-4000-8000-000000000099/complete"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Session not found: 00000000-0000-4000-8000-000000000099\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Voice",
+      "item": [
+        {
+          "name": "POST /api/voice/turn",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audioBase64\": \"AQID\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\",\n  \"callId\": \"{{callId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/voice/turn",
+            "description": "Orchestrated STT → session context → LLM → TTS (KAN-14/KAN-15). Pass `callId` from POST /api/sessions for durable context."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"audioBase64\": \"<base64-audio>\",\n  \"mimeType\": \"audio/webm\",\n  \"callId\": \"{{callId}}\"\n}"
+                },
+                "url": "{{baseUrl}}/api/voice/turn"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"transcript\": \"I need an appointment\",\n  \"replyText\": \"I can help you schedule.\",\n  \"audioBase64\": \"<base64-mpeg>\",\n  \"mimeType\": \"audio/mpeg\",\n  \"conversationId\": \"<uuid>\",\n  \"callId\": \"<uuid>\",\n  \"action\": \"continue\",\n  \"currentState\": \"ACTIVE_CONVERSATION\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/voice/turn"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"audioBase64 is required\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Errors",
+      "item": [
+        {
+          "name": "GET /does-not-exist (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/does-not-exist",
+            "description": "Shared not-found example for the global `notFoundHandler`."
+          },
+          "response": [
+            {
+              "name": "Fail — 404 NOT_FOUND",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/does-not-exist"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"The requested resource was not found\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

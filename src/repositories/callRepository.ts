@@ -24,6 +24,18 @@ export class CallRepository {
     const result = await getPool().query("SELECT * FROM calls WHERE id = $1", [id]);
     return result.rows[0] ? toCall(result.rows[0]) : null;
   }
+
+  async updateStatus(id: string, status: CallStatus, endTime?: Date | null): Promise<Call | null> {
+    const result = await getPool().query(
+      `UPDATE calls
+       SET status = $2,
+           end_time = COALESCE($3, end_time)
+       WHERE id = $1
+       RETURNING *`,
+      [id, status, endTime ?? null],
+    );
+    return result.rows[0] ? toCall(result.rows[0]) : null;
+  }
 }
 
 export const callRepository = new CallRepository();

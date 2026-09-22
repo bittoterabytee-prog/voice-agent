@@ -94,7 +94,7 @@ conversation_states → CALLER_RETURNED → ACTIVE_CONVERSATION
 call_events → CALLER_RETURNED
 ```
 
-Implementation hooks: enums in `src/models/enums.ts`, persistence in `conversationStateRepository` / `callEventRepository`. Full wait behavior orchestration is documented in [`docs/voice/WAITING_STATE.md`](docs/voice/WAITING_STATE.md).
+Implementation hooks: enums in `src/models/enums.ts`, persistence in `conversationStateRepository` / `callEventRepository`, orchestration in `SessionService` + `POST /api/sessions/*` (KAN-15). Full wait behavior is documented in [`docs/voice/WAITING_STATE.md`](docs/voice/WAITING_STATE.md).
 
 ## Appointment booking flow (intended)
 

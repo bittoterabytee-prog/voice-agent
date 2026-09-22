@@ -8,6 +8,7 @@ type VoiceTurnBody = {
   mimeType?: unknown;
   fileName?: unknown;
   conversationId?: unknown;
+  callId?: unknown;
   messages?: unknown;
   voice?: unknown;
   sessionId?: unknown;
@@ -71,6 +72,7 @@ export async function runVoiceTurn(
     const fileName = typeof body.fileName === "string" ? body.fileName : undefined;
     const conversationId =
       typeof body.conversationId === "string" ? body.conversationId : undefined;
+    const callId = typeof body.callId === "string" ? body.callId : undefined;
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : undefined;
     const voice = typeof body.voice === "string" ? body.voice : undefined;
     const messages = parseMessages(body.messages);
@@ -80,6 +82,7 @@ export async function runVoiceTurn(
       mimeType,
       fileName,
       conversationId,
+      callId,
       sessionId,
       voice,
       messages,

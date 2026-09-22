@@ -3,7 +3,8 @@
 | Service | Path | Role |
 | ------- | ---- | ---- |
 | CallService | `src/services/callService.ts` | Create ACTIVE call with caller number + language |
-| ConversationService | `src/conversation/conversationService.ts` | In-memory turn buffer |
+| SessionService | `src/services/sessionService.ts` | Session lifecycle: start/turns/wait/resume/complete; wires calls + conversation_states + call_events + turn context (KAN-15) |
+| ConversationService | `src/conversation/conversationService.ts` | In-memory turn buffer (rehydratable from call_events) |
 | LlmService | `src/ai/llmService.ts` | OpenAI chat completions via `getConfig().llm` (KAN-12) |
 | SttService | `src/voice/sttService.ts` | OpenAI Whisper transcription via `getConfig().stt` (KAN-11) |
 | TtsService | `src/voice/ttsService.ts` | OpenAI speech synthesis via `getConfig().tts` (KAN-13) |

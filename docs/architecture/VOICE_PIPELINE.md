@@ -12,7 +12,8 @@ Microphone (frontend repo)
    → POST /api/voice/turn (audioBase64)
    → VoicePipelineService (src/voice/voicePipelineService.ts)
         ├─ SttService
-        ├─ ConversationService (in-memory turns; KAN-15 deepens persistence)
+        ├─ SessionService when callId set (KAN-15 durable state + context)
+        ├─ ConversationService (in-memory turns; fallback without callId)
         ├─ LlmService
         └─ TtsService (TTS failure still returns transcript + replyText)
    → playback audioBase64 in browser (or show text if ttsError)
@@ -31,6 +32,7 @@ Request:
   "fileName": "clip.webm",
   "sessionId": "browser-...",
   "conversationId": "<optional prior conversation>",
+  "callId": "<optional durable session from POST /api/sessions>",
   "messages": [{ "role": "user", "content": "optional extra context" }],
   "voice": "alloy"
 }
