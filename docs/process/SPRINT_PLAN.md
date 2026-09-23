@@ -58,7 +58,7 @@ Do **not** open new Foundation tickets unless something foundational is missing.
 | P1 | [KAN-15](https://voiceagentai.atlassian.net/browse/KAN-15) | Conversation session & context management | Backend | Done |
 | P1 | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) | Real-time voice conversation pipeline | Backend | Done |
 | P1 | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) | Voice agent UI (+ backend CORS) | Frontend / Backend | CORS Done (PR #8); UI in FE repo |
-| P2 | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) | End-to-end browser voice conversation | Full Stack | In Progress |
+| P2 | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) | End-to-end browser voice conversation | Full Stack | Done |
 | P2 | [KAN-18](https://voiceagentai.atlassian.net/browse/KAN-18) | Voice pipeline logging & error handling | Backend | To Do |
 | P2 | [KAN-21](https://voiceagentai.atlassian.net/browse/KAN-21) | Postman collection for HTTP APIs | Backend | Done |
 
