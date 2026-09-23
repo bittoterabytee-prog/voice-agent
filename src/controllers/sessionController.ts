@@ -46,6 +46,21 @@ export async function startSession(
   }
 }
 
+export async function listSessions(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const raw = typeof req.query.limit === "string" ? Number(req.query.limit) : 50;
+    const limit = Number.isFinite(raw) ? raw : 50;
+    const sessions = await new SessionService().listSessions(limit);
+    res.status(200).json({ sessions });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getSession(
   req: Request,
   res: Response,
@@ -54,6 +69,20 @@ export async function getSession(
   try {
     const session = await new SessionService().getSession(callIdParam(req));
     res.status(200).json(session);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listSessionEvents(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const callId = callIdParam(req);
+    const events = await new SessionService().listEvents(callId);
+    res.status(200).json({ callId, events });
   } catch (error) {
     next(error);
   }

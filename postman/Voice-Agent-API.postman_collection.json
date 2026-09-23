@@ -466,6 +466,64 @@
           ]
         },
         {
+          "name": "GET /api/sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sessions?limit=50",
+            "description": "List recent sessions for Call History (KAN-18)."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions?limit=50"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"sessions\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /api/usage/summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/usage/summary",
+            "description": "Estimated POC OpenAI spend so far (KAN-18). Not a live wallet balance."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/usage/summary"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"currency\": \"USD\",\n  \"estimatedUsdTotal\": 0,\n  \"turnCount\": 0,\n  \"callCount\": 0,\n  \"note\": \"Estimated POC spend from tracked OpenAI usage events; not a live OpenAI wallet balance.\"\n}"
+            }
+          ]
+        },
+        {
           "name": "GET /api/sessions/:callId",
           "request": {
             "method": "GET",
@@ -509,6 +567,35 @@
                 }
               ],
               "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Session not found: 00000000-0000-4000-8000-000000000099\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "GET /api/sessions/:callId/events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sessions/:callId/events",
+            "description": "List call_events for a session (KAN-18 pipeline logs)."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/:callId/events"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"callId\": \"<uuid>\",\n  \"events\": []\n}"
             }
           ]
         },

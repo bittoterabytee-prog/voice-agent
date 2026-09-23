@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { describe, expect, it, vi } from "vitest";
 import { errorHandler } from "../src/middleware/errorHandler";
 import { AppError, ExternalServiceError } from "../src/utils/errors";
+import { redactSecrets } from "../src/utils/redact";
 
 function mockResponse() {
   const res = {
@@ -74,5 +75,21 @@ describe("API error handling", () => {
         message: "LLM provider is unavailable",
       },
     });
+  });
+
+  it("redacts secret-like substrings from exposed error messages", () => {
+    const res = mockResponse();
+    const next = vi.fn() as unknown as NextFunction;
+
+    errorHandler(
+      new ExternalServiceError("stt", `upstream said key sk-sttsecretABCDEF is invalid`),
+      { id: "req-1" } as Request,
+      res,
+      next,
+    );
+
+    expect(res.statusCode).toBe(502);
+    expect(JSON.stringify(res.body)).not.toContain("sk-sttsecretABCDEF");
+    expect(redactSecrets("sk-sttsecretABCDEF")).toBe("[REDACTED]");
   });
 });

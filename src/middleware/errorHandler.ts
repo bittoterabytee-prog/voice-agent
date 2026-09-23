@@ -1,12 +1,16 @@
 import type { NextFunction, Request, Response } from "express";
 import pinoHttp from "pino-http";
 import { logger } from "../utils/logger";
+import { redactSecrets, redactValue } from "../utils/redact";
 
 export const requestLogger = pinoHttp({
   logger,
   autoLogging: {
     ignore: (req) => req.url === "/health",
   },
+  customProps: (req) => ({
+    requestId: req.id,
+  }),
 });
 
 export function notFoundHandler(_req: Request, res: Response): void {
@@ -36,9 +40,18 @@ export function errorHandler(
     typeof err === "object" && err !== null && "expose" in err
       ? Boolean((err as { expose: boolean }).expose)
       : false;
-  const message = expose && err instanceof Error ? err.message : "An unexpected error occurred";
+  const rawMessage = expose && err instanceof Error ? err.message : "An unexpected error occurred";
+  const message = redactSecrets(rawMessage);
 
-  logger.error({ err, statusCode, code }, "Request failed");
+  logger.error(
+    {
+      err: redactValue(err),
+      statusCode,
+      code,
+      requestId: _req.id,
+    },
+    "Request failed",
+  );
 
   res.status(Number.isFinite(statusCode) ? statusCode : 500).json({
     error: {

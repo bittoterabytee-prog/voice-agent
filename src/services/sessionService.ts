@@ -14,6 +14,7 @@ import {
   type ConversationStateRepository,
 } from "../repositories/conversationStateRepository";
 import { NotFoundError, ValidationError } from "../utils/errors";
+import { roundUsd } from "../utils/openaiCost";
 
 export type SessionMessage = {
   role: "user" | "assistant" | "system";
@@ -30,6 +31,35 @@ export type SessionSnapshot = {
   intent: string | null;
   turns: Array<{ role: ConversationTurn["role"]; content: string; createdAt: string }>;
   messages: SessionMessage[];
+};
+
+export type SessionHistoryItem = {
+  callId: string;
+  callerNumber: string;
+  language: string;
+  callStatus: Call["status"];
+  currentState: ConversationStateName | null;
+  intent: string | null;
+  startTime: string;
+  endTime: string | null;
+  durationMs: number;
+  estimatedUsd: number;
+};
+
+export type SessionEventItem = {
+  id: string;
+  callId: string;
+  eventType: string;
+  timestamp: string;
+  metadata: Record<string, unknown>;
+};
+
+export type SpendSummary = {
+  currency: "USD";
+  estimatedUsdTotal: number;
+  turnCount: number;
+  callCount: number;
+  note: string;
 };
 
 export type HandleUtteranceResult = SessionSnapshot & {
@@ -107,6 +137,105 @@ export class SessionService {
   async getSession(callId: string): Promise<SessionSnapshot> {
     const { call, state, conversation } = await this.loadSession(callId);
     return this.toSnapshot(call, state, conversation.id, conversation.turns);
+  }
+
+  /**
+   * Recent sessions for Call History (KAN-18). Includes conversation state when present.
+   */
+  async listSessions(limit = 50): Promise<SessionHistoryItem[]> {
+    const calls = await this.calls.listRecent(limit);
+    const items: SessionHistoryItem[] = [];
+
+    for (const call of calls) {
+      const state = await this.states.findByCallId(call.id);
+      const durationMs =
+        call.endTime != null
+          ? Math.max(0, call.endTime.getTime() - call.startTime.getTime())
+          : Math.max(0, Date.now() - call.startTime.getTime());
+      const estimatedUsd = await this.sumEstimatedUsdForCall(call.id);
+
+      items.push({
+        callId: call.id,
+        callerNumber: call.callerNumber,
+        language: call.language,
+        callStatus: call.status,
+        currentState: state?.currentState ?? null,
+        intent: state?.intent ?? null,
+        startTime: call.startTime.toISOString(),
+        endTime: call.endTime ? call.endTime.toISOString() : null,
+        durationMs,
+        estimatedUsd,
+      });
+    }
+
+    return items;
+  }
+
+  async listEvents(callId: string): Promise<SessionEventItem[]> {
+    const call = await this.calls.findById(callId.trim());
+    if (!call) {
+      throw new NotFoundError(`Session not found: ${callId.trim()}`);
+    }
+
+    const events = await this.events.listByCallId(call.id);
+    return events.map((event) => ({
+      id: event.id,
+      callId: event.callId,
+      eventType: event.eventType,
+      timestamp: event.timestamp.toISOString(),
+      metadata: event.metadata ?? {},
+    }));
+  }
+
+  async getSpendSummary(): Promise<SpendSummary> {
+    const calls = await this.calls.listRecent(200);
+    let estimatedUsdTotal = 0;
+    let turnCount = 0;
+
+    for (const call of calls) {
+      const events = await this.events.listByCallId(call.id);
+      for (const event of events) {
+        if (event.eventType !== "TOOL_CALLED") {
+          continue;
+        }
+        const meta = event.metadata ?? {};
+        if (meta.kind !== "openai_usage") {
+          continue;
+        }
+        const usd = Number(meta.estimatedUsd);
+        if (Number.isFinite(usd) && usd > 0) {
+          estimatedUsdTotal += usd;
+          turnCount += 1;
+        }
+      }
+    }
+
+    return {
+      currency: "USD",
+      estimatedUsdTotal: roundUsd(estimatedUsdTotal),
+      turnCount,
+      callCount: calls.length,
+      note: "Estimated POC spend from tracked OpenAI usage events; not a live OpenAI wallet balance.",
+    };
+  }
+
+  private async sumEstimatedUsdForCall(callId: string): Promise<number> {
+    const events = await this.events.listByCallId(callId);
+    let total = 0;
+    for (const event of events) {
+      if (event.eventType !== "TOOL_CALLED") {
+        continue;
+      }
+      const meta = event.metadata ?? {};
+      if (meta.kind !== "openai_usage") {
+        continue;
+      }
+      const usd = Number(meta.estimatedUsd);
+      if (Number.isFinite(usd) && usd > 0) {
+        total += usd;
+      }
+    }
+    return roundUsd(total);
   }
 
   async appendTurn(callId: string, input: AppendTurnInput): Promise<SessionSnapshot> {

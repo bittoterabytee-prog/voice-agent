@@ -8,6 +8,7 @@ import { sessionRouter } from "./routes/session";
 import { sttRouter } from "./routes/stt";
 import { ttsRouter } from "./routes/tts";
 import { voiceRouter } from "./routes/voice";
+import { usageRouter } from "./routes/usage";
 
 export function createApp() {
   loadConfig();
@@ -19,6 +20,7 @@ export function createApp() {
   app.use(requestLogger);
   app.use(healthRouter);
   app.use(sessionRouter);
+  app.use(usageRouter);
   app.use(sttRouter);
   app.use(llmRouter);
   app.use(ttsRouter);

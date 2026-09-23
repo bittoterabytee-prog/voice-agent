@@ -68,6 +68,43 @@ When TTS fails after a successful LLM reply (TC-004), response is still `200` wi
 | Missing/empty/invalid audio | `VALIDATION_ERROR` | 400 |
 | STT or LLM provider failure | `EXTERNAL_SERVICE_UNAVAILABLE` | 502 |
 
+Success responses may include `requestId` (KAN-18 correlation id from `pino-http`), a `pipeline` object for the UI, and a `cost` estimate:
+
+```json
+{
+  "pipeline": {
+    "requestId": "12",
+    "stages": [
+      { "stage": "stt", "outcome": "success", "durationMs": 1598 },
+      { "stage": "llm", "outcome": "success", "durationMs": 1586 },
+      { "stage": "tts", "outcome": "success", "durationMs": 2445 }
+    ]
+  },
+  "cost": {
+    "currency": "USD",
+    "estimatedUsd": 0.00042,
+    "breakdown": [
+      { "stage": "stt", "estimatedUsd": 0.0001, "details": { "audioBytes": 12000 } },
+      { "stage": "llm", "estimatedUsd": 0.0002, "details": { "promptTokens": 120, "completionTokens": 40 } },
+      { "stage": "tts", "estimatedUsd": 0.00012, "details": { "characters": 80 } }
+    ],
+    "note": "Estimated from public OpenAI list prices for this POC; not a live wallet balance."
+  }
+}
+```
+
+## Logging & error handling (KAN-18)
+
+Each turn emits structured pino logs with `component: "voice_pipeline"`, `requestId`, optional `callId` / `conversationId`, `stage` (`stt` | `llm` | `tts` | `turn`), `outcome`, and `durationMs`.
+
+When `callId` is set:
+
+- Session layer still writes `USER_SPEECH` / `AGENT_RESPONSE` (and lifecycle events).
+- STT/LLM hard failures and TTS soft-failures also write `call_events` with `event_type = TOOL_FAILED` and metadata `{ kind: "voice_pipeline", stage, softFail, code, message, requestId }` (messages are secret-redacted).
+- Successful turns also write `call_events` with `event_type = TOOL_CALLED` and metadata `{ kind: "openai_usage", estimatedUsd, breakdown, requestId }` for POC spend tracking (list-price estimates only — not a live OpenAI wallet balance).
+
+`errorHandler` returns `{ error: { code, message } }` only; API keys and credential-like substrings are redacted from logs and client messages (`src/utils/redact.ts`).
+
 ## Step APIs (also available)
 
 Clients may still call STT / LLM / TTS independently:

@@ -25,6 +25,17 @@ export class CallRepository {
     return result.rows[0] ? toCall(result.rows[0]) : null;
   }
 
+  async listRecent(limit = 50): Promise<Call[]> {
+    const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.trunc(limit), 1), 200) : 50;
+    const result = await getPool().query(
+      `SELECT * FROM calls
+       ORDER BY COALESCE(end_time, start_time) DESC, created_at DESC
+       LIMIT $1`,
+      [safeLimit],
+    );
+    return result.rows.map(toCall);
+  }
+
   async updateStatus(id: string, status: CallStatus, endTime?: Date | null): Promise<Call | null> {
     const result = await getPool().query(
       `UPDATE calls
