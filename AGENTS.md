@@ -8,7 +8,7 @@ Before changing this repo, read:
 4. Backend product requirements (SRD): [`docs/backend/SRD_BACKEND.md`](docs/backend/SRD_BACKEND.md)
 5. Sprint plan (current sprint + roadmap): [`docs/process/SPRINT_PLAN.md`](docs/process/SPRINT_PLAN.md)
 6. Topic docs under [`docs/`](docs/)
-7. MCP setup: [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md)
+7. Shared MCP + cross-repo agent knowledge: https://github.com/bittoterabytee-prog/voice-agent-knowledge ([`docs/mcp/MCP_SETUP.md`](https://github.com/bittoterabytee-prog/voice-agent-knowledge/blob/main/docs/mcp/MCP_SETUP.md) in that repo)
 8. Ticket standards: [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md)
 9. Branch & PR workflow: [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md)
 10. Postman APIs: [`docs/process/POSTMAN.md`](docs/process/POSTMAN.md) + [`postman/`](postman/) — update the collection when adding HTTP routes
