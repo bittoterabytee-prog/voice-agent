@@ -406,7 +406,7 @@
               }
             },
             "url": "{{baseUrl}}/api/sessions",
-            "description": "Start a durable conversation session (KAN-15). Creates `calls` + `conversation_states` + CALL_STARTED."
+            "description": "Start a durable conversation session (KAN-15/KAN-28). Creates `calls` + `conversation_states` + CALL_STARTED. `language` optional (default `en`); allowed: en | hi | hinglish."
           },
           "response": [
             {
@@ -880,7 +880,7 @@
               }
             },
             "url": "{{baseUrl}}/api/voice/turn",
-            "description": "Orchestrated STT → language detection → session context → LLM → TTS (KAN-14/KAN-15/KAN-23). Pass `callId` from POST /api/sessions for durable context. Optional `languageHint` does not override the transcript."
+            "description": "Orchestrated STT → language detection → session language persist → session context → LLM → TTS (KAN-14/KAN-15/KAN-23/KAN-28). Pass `callId` from POST /api/sessions for durable context. Clear detection updates session `language` (en|hi|hinglish) and response includes top-level `language`. Optional `languageHint` does not override the transcript."
           },
           "response": [
             {

@@ -15,6 +15,11 @@ import {
 } from "../repositories/conversationStateRepository";
 import { NotFoundError, ValidationError } from "../utils/errors";
 import { roundUsd } from "../utils/openaiCost";
+import {
+  LANGUAGE_CODES,
+  normalizeLanguageCode,
+  type LanguageCode,
+} from "../voice/languageDetectionService";
 
 export type SessionMessage = {
   role: "user" | "assistant" | "system";
@@ -108,7 +113,7 @@ export class SessionService {
   }
 
   async startSession(input: StartSessionInput = {}): Promise<SessionSnapshot> {
-    const language = (input.language?.trim() || "en").toLowerCase();
+    const language = this.requireSupportedLanguage(input.language);
     const callerNumber = input.callerNumber?.trim() || "browser";
 
     const call = await this.calls.create({
@@ -132,6 +137,41 @@ export class SessionService {
 
     const conversation = this.conversations.create(call.id);
     return this.toSnapshot(call, state, conversation.id, conversation.turns);
+  }
+
+  /**
+   * Persist session language on `calls` + `conversation_states` (KAN-28).
+   * Emits `LANGUAGE_CHANGED` when the preference actually changes.
+   */
+  async updateLanguage(callId: string, language: string): Promise<SessionSnapshot> {
+    const nextLanguage = this.requireSupportedLanguage(language);
+    const { call, state, conversation } = await this.loadSession(callId);
+    this.assertNotCompleted(state);
+
+    if (call.language === nextLanguage && state.language === nextLanguage) {
+      return this.toSnapshot(call, state, conversation.id, conversation.turns);
+    }
+
+    const previousLanguage = call.language;
+    const updatedCall = (await this.calls.updateLanguage(callId, nextLanguage)) ?? {
+      ...call,
+      language: nextLanguage,
+    };
+
+    const nextState = await this.states.upsert({
+      callId,
+      currentState: state.currentState,
+      language: nextLanguage,
+      intent: state.intent,
+    });
+
+    await this.events.create({
+      callId,
+      eventType: "LANGUAGE_CHANGED",
+      metadata: { from: previousLanguage, to: nextLanguage },
+    });
+
+    return this.toSnapshot(updatedCall, nextState, conversation.id, conversation.turns);
   }
 
   async getSession(callId: string): Promise<SessionSnapshot> {
@@ -508,6 +548,17 @@ export class SessionService {
     }
   }
 
+  /** Empty/missing → en; unsupported codes rejected (KAN-28 TC-001 / TC-004). */
+  private requireSupportedLanguage(value: string | undefined): LanguageCode {
+    const parsed = normalizeLanguageCode(value);
+    if (!parsed) {
+      throw new ValidationError(
+        `language must be one of: ${LANGUAGE_CODES.join(", ")}`,
+      );
+    }
+    return parsed;
+  }
+
   private toSnapshot(
     call: Call,
     state: ConversationStateRecord,
@@ -523,7 +574,8 @@ export class SessionService {
       callId: call.id,
       conversationId,
       callerNumber: call.callerNumber,
-      language: call.language,
+      // Prefer conversation_states.language when present (kept in sync with calls.language).
+      language: state.language || call.language,
       callStatus: call.status,
       currentState: state.currentState,
       intent: state.intent,

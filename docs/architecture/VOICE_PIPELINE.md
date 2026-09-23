@@ -114,7 +114,13 @@ After a non-empty transcript, `LanguageDetectionService` classifies the **whole*
 | `null` + `unclear` | Empty, punctuation-only, or nonsense |
 | `null` + `unclear` + `unsupported` | Another language or script |
 
-`language` is `null` for unclear and unsupported results. An optional `languageHint` raises confidence when it agrees and does not override a clear transcript. If detection throws, the stage is logged with secrets redacted and the turn continues with `unclear: true`. Reply language and session language stay unchanged until later stories.
+`language` is `null` for unclear and unsupported results. An optional `languageHint` raises confidence when it agrees and does not override a clear transcript. If detection throws, the stage is logged with secrets redacted and the turn continues with `unclear: true`.
+
+## Session language preference (KAN-28)
+
+When `callId` is present and detection returns a clear `en` | `hi` | `hinglish` result, `SessionService.updateLanguage` persists that code on **both** `calls.language` and `conversation_states.language`. A `LANGUAGE_CHANGED` call event is written only when the preference actually changes (`metadata.from` / `metadata.to`). Unclear or unsupported utterances do **not** overwrite the stored preference.
+
+`POST /api/sessions` defaults `language` to `en` and rejects unsupported codes with `400`. `POST /api/voice/turn` responses expose top-level `language` (session preference) plus `languageDetection` (utterance classification). No appointment logic.
 
 ## Logging & error handling (KAN-18)
 
