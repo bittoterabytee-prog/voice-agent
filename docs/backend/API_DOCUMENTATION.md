@@ -4,6 +4,8 @@
 
 ## Current endpoints
 
+Browser clients (separate frontend repo) call these APIs over HTTP. CORS is enabled via `CORS_ORIGINS` / defaults for local Vite (`http://localhost:5173`, `http://localhost:5174`) so the KAN-16 UI can reach this backend. See [`ARCHITECTURE.md`](../../ARCHITECTURE.md) and `src/middleware/cors.ts`.
+
 ### `GET /health`
 
 **Purpose:** Liveness check for local/Docker verification.

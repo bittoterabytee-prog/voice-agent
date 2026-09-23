@@ -12,6 +12,7 @@
 | ---- | -------- |
 | Health | `tests/health.test.ts` |
 | Config (KAN-8) | `tests/config.test.ts` |
+| CORS (KAN-16 UI) | `tests/cors.test.ts` |
 | STT (KAN-11) | `tests/stt.test.ts` |
 | LLM (KAN-12) | `tests/llm.test.ts` |
 | TTS (KAN-13) | `tests/tts.test.ts` |

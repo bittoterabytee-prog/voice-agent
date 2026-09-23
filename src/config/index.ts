@@ -51,6 +51,8 @@ const rawEnvSchema = z
     VECTOR_DB_URL: optionalUrl,
     VECTOR_DB_API_KEY: optionalNonEmptyString,
     EMBEDDING_MODEL: optionalNonEmptyString,
+    /** Comma-separated browser origins, or `*` (KAN-16 frontend CORS). */
+    CORS_ORIGINS: optionalNonEmptyString,
   })
   .superRefine((value, ctx) => {
     if (!value.APP_ENV && !value.NODE_ENV) {
@@ -65,12 +67,37 @@ const rawEnvSchema = z
 export type AppEnvironment = z.infer<typeof appEnvSchema>;
 export type LogLevel = z.infer<typeof logLevelSchema>;
 
+/** Default Vite ports used by the separate frontend repo during local POC. */
+export const DEFAULT_DEV_CORS_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+] as const;
+
+export function resolveCorsOrigins(
+  raw: string | undefined,
+  appEnv: AppEnvironment,
+): string[] {
+  if (raw && raw.trim().length > 0) {
+    return raw
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter((origin) => origin.length > 0);
+  }
+  // Production: no browser CORS unless explicitly configured.
+  if (appEnv === "production") {
+    return [];
+  }
+  return [...DEFAULT_DEV_CORS_ORIGINS];
+}
+
 export type AppConfig = {
   app: {
     name: string;
     env: AppEnvironment;
     port: number;
     logLevel: LogLevel;
+    /** Allowed browser Origins for CORS (empty = no CORS headers). */
+    corsOrigins: string[];
   };
   database: {
     url?: string;
@@ -126,6 +153,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       env: appEnv,
       port: raw.APP_PORT ?? raw.PORT ?? 3000,
       logLevel: raw.LOG_LEVEL,
+      corsOrigins: resolveCorsOrigins(raw.CORS_ORIGINS, appEnv),
     },
     database: {
       url: raw.DATABASE_URL,

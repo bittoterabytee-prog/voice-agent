@@ -21,6 +21,7 @@
 - **Logging:** Pino (`src/utils/logger.ts`) using `config.app.logLevel`.
 - **Errors:** `AppError` hierarchy + Express `errorHandler` (no secret leakage).
 - **Config:** Only through `src/config` — see [KAN-8](https://voiceagentai.atlassian.net/browse/KAN-8).
+- **CORS:** `src/middleware/cors.ts` + `getConfig().app.corsOrigins` (`CORS_ORIGINS`). Allows the separate frontend (e.g. `http://localhost:5174`) to call HTTP APIs for [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16).
 
 ## Out of scope (current POC)
 

@@ -8,7 +8,7 @@ src/
 ├── controllers/      HTTP handlers
 ├── routes/           Route registration
 ├── services/         Domain orchestration (calls)
-├── middleware/       Logging + errors
+├── middleware/       Logging, errors, CORS (KAN-16)
 ├── models/           Domain types + enums
 ├── repositories/     PostgreSQL access
 ├── integrations/     Outbound HTTP
