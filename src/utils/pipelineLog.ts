@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { logger } from "./logger";
 import { redactSecrets, redactValue } from "./redact";
 
-export type PipelineStage = "stt" | "llm" | "tts" | "session" | "turn";
+export type PipelineStage = "stt" | "language" | "llm" | "tts" | "session" | "turn";
 
 export type PipelineLogContext = {
   requestId?: string;

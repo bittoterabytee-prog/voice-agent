@@ -13,7 +13,7 @@ src/
 ├── repositories/     PostgreSQL access
 ├── integrations/     Outbound HTTP
 ├── ai/               LLM provider adapter
-├── voice/            Browser STT/TTS/session
+├── voice/            Browser STT, language detection, TTS, session
 ├── conversation/     In-memory turns
 ├── tools/            Agent-callable tools
 ├── db/               Pool, migrate, seed, mappers

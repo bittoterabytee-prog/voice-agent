@@ -1,0 +1,171 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { LlmService } from "../src/ai/llmService";
+import { ConversationService } from "../src/conversation/conversationService";
+import { logger } from "../src/utils/logger";
+import {
+  LanguageDetectionService,
+  type LanguageDetectionResult,
+} from "../src/voice/languageDetectionService";
+import { SttService } from "../src/voice/sttService";
+import { TtsService } from "../src/voice/ttsService";
+import { VoicePipelineService } from "../src/voice/voicePipelineService";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+function mockStt(text: string): SttService {
+  return {
+    transcribe: vi.fn(async () => ({ text })),
+  } as unknown as SttService;
+}
+
+function mockLlm(text: string): LlmService {
+  return {
+    complete: vi.fn(async () => ({ text })),
+  } as unknown as LlmService;
+}
+
+function mockTts(): TtsService {
+  return {
+    synthesize: vi.fn(async () => ({ audio: new Uint8Array([1, 2, 3]), mimeType: "audio/mpeg" })),
+  } as unknown as TtsService;
+}
+
+describe("KAN-23 language detection", () => {
+  const detector = new LanguageDetectionService();
+
+  it("TC-001 classifies an English utterance as en", () => {
+    const result = detector.detect("Hello, I want to book an appointment.");
+    expect(result.language).toBe("en");
+    expect(result.unclear).toBe(false);
+    expect(result.unsupported).toBe(false);
+    expect(result.confidence).toBeGreaterThan(0.5);
+  });
+
+  it("TC-002 classifies romanized Hindi with an English loanword as hinglish, not English-only", () => {
+    const result = detector.detect("Mujhe kal ka appointment chahiye.");
+    expect(result.language === "hi" || result.language === "hinglish").toBe(true);
+    expect(result.language).not.toBe("en");
+    expect(result.unclear).toBe(false);
+  });
+
+  it("TC-002 classifies Devanagari and pure romanized Hindi as hi", () => {
+    expect(detector.detect("मुझे कल आना है").language).toBe("hi");
+    expect(detector.detect("Mujhe kal subah aana hai").language).toBe("hi");
+  });
+
+  it("TC-003 keeps a mixed Hinglish utterance as one hinglish result", () => {
+    const result = detector.detect(
+      "Mujhe doctor ke saath evening mein appointment chahiye, around 6 PM.",
+    );
+    expect(result).toMatchObject<Partial<LanguageDetectionResult>>({
+      language: "hinglish",
+      unclear: false,
+      unsupported: false,
+    });
+  });
+
+  it("TC-004 flags empty, nonsense, and unsupported text", () => {
+    expect(detector.detect("")).toMatchObject({ unclear: true, language: null });
+    expect(detector.detect("   ???  ")).toMatchObject({
+      unclear: true,
+      unsupported: false,
+      language: null,
+    });
+    expect(detector.detect("asdf")).toMatchObject({ unclear: true, language: null });
+    expect(detector.detect("Bonjour je voudrais un rendez vous demain")).toMatchObject({
+      unclear: true,
+      unsupported: true,
+      language: null,
+    });
+    expect(detector.detect("你好我想预约")).toMatchObject({
+      unclear: true,
+      unsupported: true,
+      language: null,
+    });
+  });
+
+  it("does not let a provider hint override a clear transcript", () => {
+    const hinted = detector.detect("Hello, I want to book an appointment.", {
+      providerLanguage: "hi",
+    });
+    expect(hinted.language).toBe("en");
+
+    const agreed = detector.detect("Hello, I want to book an appointment.", {
+      providerLanguage: "en-US",
+    });
+    const plain = detector.detect("Hello, I want to book an appointment.");
+    expect(agreed.confidence).toBeGreaterThan(plain.confidence);
+  });
+
+  it("TC-005 redacts secrets when detection throws and still returns a text reply", async () => {
+    const errorSpy = vi.spyOn(logger, "error");
+    const llm = mockLlm("I can help with that.");
+    const pipeline = new VoicePipelineService({
+      stt: mockStt("Hello, I want to book an appointment."),
+      llm,
+      tts: mockTts(),
+      conversation: new ConversationService(),
+      languageDetection: {
+        detect() {
+          throw new Error("detector failed sk-testkey12345678");
+        },
+      },
+    });
+
+    const result = await pipeline.runTurn({
+      audio: new Uint8Array([1, 2, 3]),
+      sessionId: "browser-lang-1",
+    });
+
+    expect(result.replyText).toBe("I can help with that.");
+    expect(result.languageDetection).toEqual({
+      language: null,
+      confidence: 0,
+      unclear: true,
+      unsupported: false,
+    });
+    const logged = JSON.stringify(errorSpy.mock.calls);
+    expect(logged).not.toContain("sk-testkey12345678");
+    expect(logged).toContain("[REDACTED]");
+    expect(llm.complete).toHaveBeenCalled();
+  });
+
+  it("runs detection after STT and before LLM on a voice turn", async () => {
+    const order: string[] = [];
+    const stt = {
+      transcribe: vi.fn(async () => {
+        order.push("stt");
+        return { text: "Mujhe doctor ke saath evening mein appointment chahiye" };
+      }),
+    } as unknown as SttService;
+    const llm = {
+      complete: vi.fn(async () => {
+        order.push("llm");
+        return { text: "Sure." };
+      }),
+    } as unknown as LlmService;
+
+    const pipeline = new VoicePipelineService({
+      stt,
+      llm,
+      tts: mockTts(),
+      conversation: new ConversationService(),
+    });
+
+    const result = await pipeline.runTurn({
+      audio: new Uint8Array([4, 5, 6]),
+      languageHint: "hi",
+    });
+
+    expect(order).toEqual(["stt", "llm"]);
+    expect(result.languageDetection?.language).toBe("hinglish");
+    expect(result.pipeline?.stages.map((stage) => stage.stage)).toEqual([
+      "stt",
+      "language",
+      "llm",
+      "tts",
+    ]);
+  });
+});

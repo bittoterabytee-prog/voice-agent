@@ -9,7 +9,8 @@
 | SttService | `src/voice/sttService.ts` | OpenAI Whisper transcription via `getConfig().stt` (KAN-11) |
 | TtsService | `src/voice/ttsService.ts` | OpenAI speech synthesis via `getConfig().tts` (KAN-13) |
 | VoiceService | `src/voice/voiceService.ts` | Browser session init requiring STT+TTS config |
-| VoicePipelineService | `src/voice/voicePipelineService.ts` | One-turn STT → LLM → TTS orchestration (KAN-14) |
+| LanguageDetectionService | `src/voice/languageDetectionService.ts` | Classify one utterance as `en` \| `hi` \| `hinglish` (KAN-23) |
+| VoicePipelineService | `src/voice/voicePipelineService.ts` | One-turn STT → language detection → LLM → TTS (KAN-14, KAN-23) |
 
 ## Repositories (data services)
 

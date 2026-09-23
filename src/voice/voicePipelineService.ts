@@ -29,6 +29,11 @@ import {
   type PipelineTrace,
 } from "../utils/pipelineLog";
 import { redactSecrets } from "../utils/redact";
+import {
+  languageDetectionService,
+  type LanguageDetectionResult,
+  type LanguageDetectionService,
+} from "./languageDetectionService";
 import { SttService } from "./sttService";
 import { TtsService } from "./ttsService";
 
@@ -44,6 +49,8 @@ export type VoiceTurnRequest = {
   messages?: LlmMessage[];
   voice?: string;
   sessionId?: string;
+  /** Optional STT provider language tag. Transcript classification still wins (KAN-23). */
+  languageHint?: string;
   /** Correlation id from HTTP request logger (KAN-18). */
   requestId?: string;
 };
@@ -71,6 +78,8 @@ export type VoiceTurnResponse = {
   pipeline?: PipelineTrace;
   /** Estimated OpenAI spend for this turn (KAN-18). */
   cost?: TurnCostEstimate;
+  /** Utterance language for the single conversation engine (KAN-23). */
+  languageDetection?: LanguageDetectionResult;
 };
 
 export type VoicePipelineServiceOptions = {
@@ -80,10 +89,11 @@ export type VoicePipelineServiceOptions = {
   conversation?: ConversationService;
   sessions?: SessionService;
   events?: CallEventRepository;
+  languageDetection?: LanguageDetectionService;
 };
 
 /**
- * Orchestrates one browser voice turn: STT → LLM → TTS (KAN-14).
+ * Orchestrates one browser voice turn: STT → language detection → LLM → TTS (KAN-14, KAN-23).
  * When `callId` is set, uses SessionService for durable state + context (KAN-15).
  * KAN-18: structured stage logs + failure call_events; TTS failure still returns text.
  */
@@ -94,6 +104,7 @@ export class VoicePipelineService {
   private readonly conversation: ConversationService;
   private readonly sessions: SessionService;
   private readonly events: CallEventRepository;
+  private readonly languageDetection: LanguageDetectionService;
 
   constructor(options: VoicePipelineServiceOptions = {}) {
     this.stt = options.stt ?? new SttService();
@@ -102,6 +113,7 @@ export class VoicePipelineService {
     this.conversation = options.conversation ?? defaultConversationService;
     this.sessions = options.sessions ?? defaultSessionService;
     this.events = options.events ?? callEventRepository;
+    this.languageDetection = options.languageDetection ?? languageDetectionService;
   }
 
   async runTurn(request: VoiceTurnRequest): Promise<VoiceTurnResponse> {
@@ -155,11 +167,14 @@ export class VoicePipelineService {
         throw new ValidationError("Speech-to-text returned an empty transcript");
       }
 
+      const languageDetection = this.detectLanguage(transcript, request.languageHint, baseCtx, trace);
+
       const callId = request.callId?.trim();
       const response = callId
         ? await this.runTurnWithSession(callId, transcript, request, baseCtx, trace, costBreakdown)
         : await this.runTurnInMemory(transcript, request, baseCtx, trace, costBreakdown);
 
+      response.languageDetection = languageDetection;
       response.requestId = requestId;
       response.pipeline = trace.toJSON();
       response.cost = sumTurnCost(costBreakdown);
@@ -194,6 +209,56 @@ export class VoicePipelineService {
         err: error,
       });
       throw error;
+    }
+  }
+
+  private detectLanguage(
+    transcript: string,
+    languageHint: string | undefined,
+    ctx: PipelineLogContext,
+    trace: ReturnType<typeof createPipelineTrace>,
+  ): LanguageDetectionResult {
+    const started = Date.now();
+    try {
+      const result = this.languageDetection.detect(transcript, {
+        providerLanguage: languageHint,
+      });
+      const durationMs = Date.now() - started;
+      logPipelineStage("info", "Voice pipeline language success", {
+        ...ctx,
+        stage: "language",
+        outcome: "success",
+        durationMs,
+        detectedLanguage: result.language,
+        confidence: result.confidence,
+        unclear: result.unclear,
+        unsupported: result.unsupported,
+      });
+      trace.record({ stage: "language", outcome: "success", durationMs });
+      return result;
+    } catch (error) {
+      const durationMs = Date.now() - started;
+      const code = "LANGUAGE_DETECTION_FAILED";
+      logPipelineStage("error", "Voice pipeline language failed; continuing with unclear", {
+        ...ctx,
+        stage: "language",
+        outcome: "failure",
+        durationMs,
+        code,
+        err: error,
+      });
+      trace.record({
+        stage: "language",
+        outcome: "failure",
+        durationMs,
+        code,
+      });
+      return {
+        language: null,
+        confidence: 0,
+        unclear: true,
+        unsupported: false,
+      };
     }
   }
 

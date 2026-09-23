@@ -4,7 +4,7 @@ Browser-first audio pipeline (no telephony).
 
 ## Orchestrated turn (KAN-14)
 
-Preferred frontend path for Sprint 2: one HTTP turn that wires STT → LLM → TTS.
+Preferred frontend path: one HTTP turn that wires STT → language detection → LLM → TTS.
 
 ```
 Microphone (frontend repo)
@@ -12,6 +12,7 @@ Microphone (frontend repo)
    → POST /api/voice/turn (audioBase64)
    → VoicePipelineService (src/voice/voicePipelineService.ts)
         ├─ SttService
+        ├─ LanguageDetectionService (KAN-23: en | hi | hinglish)
         ├─ SessionService when callId set (KAN-15 durable state + context)
         ├─ ConversationService (in-memory turns; fallback without callId)
         ├─ LlmService
@@ -34,7 +35,8 @@ Request:
   "conversationId": "<optional prior conversation>",
   "callId": "<optional durable session from POST /api/sessions>",
   "messages": [{ "role": "user", "content": "optional extra context" }],
-  "voice": "alloy"
+  "voice": "alloy",
+  "languageHint": "en"
 }
 ```
 
@@ -47,7 +49,13 @@ Success `200`:
   "audioBase64": "<base64 mp3>",
   "mimeType": "audio/mpeg",
   "conversationId": "<uuid>",
-  "sessionId": "browser-..."
+  "sessionId": "browser-...",
+  "languageDetection": {
+    "language": "en",
+    "confidence": 0.92,
+    "unclear": false,
+    "unsupported": false
+  }
 }
 ```
 
@@ -76,6 +84,7 @@ Success responses may include `requestId` (KAN-18 correlation id from `pino-http
     "requestId": "12",
     "stages": [
       { "stage": "stt", "outcome": "success", "durationMs": 1598 },
+      { "stage": "language", "outcome": "success", "durationMs": 2 },
       { "stage": "llm", "outcome": "success", "durationMs": 1586 },
       { "stage": "tts", "outcome": "success", "durationMs": 2445 }
     ]
@@ -93,9 +102,23 @@ Success responses may include `requestId` (KAN-18 correlation id from `pino-http
 }
 ```
 
+## Language detection (KAN-23)
+
+After a non-empty transcript, `LanguageDetectionService` classifies the **whole** utterance before the LLM. One engine, not three agents. No appointment logic.
+
+| Code | When |
+| ---- | ---- |
+| `en` | Recognized words are English only |
+| `hi` | Devanagari, or romanized Hindi with no English content words |
+| `hinglish` | Hindi (Devanagari or romanized) and English content words in the same utterance |
+| `null` + `unclear` | Empty, punctuation-only, or nonsense |
+| `null` + `unclear` + `unsupported` | Another language or script |
+
+`language` is `null` for unclear and unsupported results. An optional `languageHint` raises confidence when it agrees and does not override a clear transcript. If detection throws, the stage is logged with secrets redacted and the turn continues with `unclear: true`. Reply language and session language stay unchanged until later stories.
+
 ## Logging & error handling (KAN-18)
 
-Each turn emits structured pino logs with `component: "voice_pipeline"`, `requestId`, optional `callId` / `conversationId`, `stage` (`stt` | `llm` | `tts` | `turn`), `outcome`, and `durationMs`.
+Each turn emits structured pino logs with `component: "voice_pipeline"`, `requestId`, optional `callId` / `conversationId`, `stage` (`stt` | `language` | `llm` | `tts` | `turn`), `outcome`, and `durationMs`. Language logs include `detectedLanguage`, `confidence`, `unclear`, and `unsupported` — not API keys.
 
 When `callId` is set:
 
