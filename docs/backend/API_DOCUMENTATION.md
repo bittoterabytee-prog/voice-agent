@@ -22,7 +22,7 @@ No authentication.
 
 ### `POST /api/stt/transcribe`
 
-**Purpose:** Convert browser-captured audio to text (KAN-11).
+**Purpose:** Convert browser-captured audio to text (KAN-11, KAN-24 multilingual).
 
 **Request body:**
 
@@ -30,17 +30,22 @@ No authentication.
 {
   "audioBase64": "<base64>",
   "mimeType": "audio/webm",
-  "fileName": "clip.webm"
+  "fileName": "clip.webm",
+  "languageHint": "hi"
 }
 ```
+
+`languageHint` is optional (`en` | `hi` | `hinglish` or ISO tags like `en-US`). For `hinglish`, Whisper `language` is omitted so mixed speech can auto-detect. When unset, `STT_DEFAULT_LANGUAGE` may apply.
 
 **Response `200`:**
 
 ```json
-{ "text": "..." }
+{ "text": "...", "language": "hi", "supported": true }
 ```
 
-Uses `getConfig().stt` (`STT_PROVIDER`, `STT_API_KEY`, `STT_MODEL`). Failures are fail-closed and must not leak API keys.
+`language` is the provider-reported ISO-639-1 code when available. `supported` is `false` when that language is outside the POC set (**en** / **hi**; Hinglish is classified after STT). Out-of-scope hints (`fr`, `es`, …) are ignored for Whisper biasing.
+
+Uses `getConfig().stt` (`STT_PROVIDER`, `STT_API_KEY`, `STT_MODEL`, optional `STT_DEFAULT_LANGUAGE`). Failures are fail-closed and must not leak API keys. One STT stack for en/hi/hinglish — not separate language agents.
 
 ### `POST /api/llm/complete`
 
@@ -133,7 +138,7 @@ Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures ar
 }
 ```
 
-`languageHint` is optional. `languageDetection.language` is `en`, `hi`, `hinglish`, or `null` when `unclear` is true. A detection failure is logged without secrets and the turn continues with `unclear: true`. This stage does not change the LLM reply language (later sprint stories) and does not book appointments.
+`languageHint` is optional on the turn request and is also forwarded into STT (KAN-24). When omitted but `callId` is set, the session `language` is used as the STT hint. Only **en / hi / hinglish** are in scope. If STT or language detection marks another language as unsupported, the turn skips the LLM and returns a fixed English fallback asking the caller to continue in English, Hindi, or Hinglish (TTS still attempted). Provider-detected STT language feeds language detection confidence; the transcript still wins when they disagree for in-scope languages. `languageDetection.language` is `en`, `hi`, `hinglish`, or `null` when `unclear` / `unsupported` is true. A detection failure is logged without secrets and the turn continues with `unclear: true`. This stage does not book appointments.
 
 If TTS fails after LLM succeeds, `audioBase64` may be omitted and `ttsError` is set (`code`, `message`, `service`). STT/LLM failures return `502` `EXTERNAL_SERVICE_UNAVAILABLE`. No telephony provider is required.
 

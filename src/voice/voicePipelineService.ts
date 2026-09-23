@@ -37,6 +37,10 @@ import {
 import { SttService } from "./sttService";
 import { TtsService } from "./ttsService";
 
+/** Spoken when the caller uses a language outside en / hi / hinglish (KAN-24). */
+export const UNSUPPORTED_LANGUAGE_REPLY =
+  "I'm sorry — I can only help in English, Hindi, or Hinglish. Please continue in one of those languages.";
+
 export type VoiceTurnRequest = {
   audio: ArrayBuffer | Uint8Array;
   mimeType?: string;
@@ -49,7 +53,7 @@ export type VoiceTurnRequest = {
   messages?: LlmMessage[];
   voice?: string;
   sessionId?: string;
-  /** Optional STT provider language tag. Transcript classification still wins (KAN-23). */
+  /** Optional STT / detection language hint (en | hi | hinglish). Session language used when omitted (KAN-23, KAN-24). */
   languageHint?: string;
   /** Correlation id from HTTP request logger (KAN-18). */
   requestId?: string;
@@ -146,7 +150,10 @@ export class VoicePipelineService {
       );
 
       let transcript: string;
+      let sttLanguage: string | undefined;
+      let sttSupported = true;
       try {
+        const languageHint = await this.resolveSttLanguageHint(request);
         const { result: sttResult } = await withStageTiming(
           { ...baseCtx, stage: "stt" },
           () =>
@@ -154,10 +161,13 @@ export class VoicePipelineService {
               audio: bytes,
               mimeType: request.mimeType,
               fileName: request.fileName,
+              languageHint,
             }),
           trace,
         );
         transcript = sttResult.text.trim();
+        sttLanguage = sttResult.language;
+        sttSupported = sttResult.supported !== false;
       } catch (error) {
         await this.recordPipelineFailure(baseCtx, "stt", error);
         throw error;
@@ -167,7 +177,49 @@ export class VoicePipelineService {
         throw new ValidationError("Speech-to-text returned an empty transcript");
       }
 
-      const languageDetection = this.detectLanguage(transcript, request.languageHint, baseCtx, trace);
+      let languageDetection = this.detectLanguage(
+        transcript,
+        sttLanguage ?? request.languageHint,
+        baseCtx,
+        trace,
+      );
+
+      if (!sttSupported && !languageDetection.unsupported) {
+        languageDetection = {
+          language: null,
+          confidence: 0,
+          unclear: true,
+          unsupported: true,
+        };
+      }
+
+      if (languageDetection.unsupported) {
+        const response = await this.runUnsupportedLanguageTurn(
+          transcript,
+          languageDetection,
+          request,
+          baseCtx,
+          trace,
+          costBreakdown,
+        );
+        response.requestId = requestId;
+        response.pipeline = trace.toJSON();
+        response.cost = sumTurnCost(costBreakdown);
+        if (response.callId) {
+          await this.persistTurnUsage(response.callId, response.cost, requestId);
+        }
+        logPipelineStage("info", "Voice pipeline turn success (unsupported language)", {
+          ...baseCtx,
+          callId: response.callId ?? baseCtx.callId,
+          conversationId: response.conversationId,
+          stage: "turn",
+          outcome: "success",
+          durationMs: Date.now() - turnStarted,
+          softFail: Boolean(response.ttsError),
+          estimatedUsd: response.cost.estimatedUsd,
+        });
+        return response;
+      }
 
       const callId = request.callId?.trim();
       const response = callId
@@ -209,6 +261,79 @@ export class VoicePipelineService {
         err: error,
       });
       throw error;
+    }
+  }
+
+  private async runUnsupportedLanguageTurn(
+    transcript: string,
+    languageDetection: LanguageDetectionResult,
+    request: VoiceTurnRequest,
+    baseCtx: PipelineLogContext,
+    trace: ReturnType<typeof createPipelineTrace>,
+    costBreakdown: StageUsageEstimate[],
+  ): Promise<VoiceTurnResponse> {
+    const replyText = UNSUPPORTED_LANGUAGE_REPLY;
+    const callId = request.callId?.trim();
+
+    if (callId) {
+      try {
+        const utterance = await this.sessions.handleUserUtterance(callId, transcript);
+        await this.sessions.appendTurn(callId, { role: "assistant", content: replyText });
+        const response: VoiceTurnResponse = {
+          transcript,
+          replyText,
+          conversationId: utterance.conversationId,
+          callId,
+          sessionId: request.sessionId,
+          currentState: utterance.currentState,
+          action: utterance.action,
+          languageDetection,
+        };
+        return this.attachTts(response, replyText, request.voice, baseCtx, trace, costBreakdown);
+      } catch {
+        // Fall through to in-memory path if session is unavailable.
+      }
+    }
+
+    const conversation = this.resolveConversation(request);
+    this.conversation.appendTurn(conversation.id, { role: "user", content: transcript });
+    this.conversation.appendTurn(conversation.id, { role: "assistant", content: replyText });
+
+    const response: VoiceTurnResponse = {
+      transcript,
+      replyText,
+      conversationId: conversation.id,
+      sessionId: request.sessionId,
+      languageDetection,
+    };
+    return this.attachTts(
+      response,
+      replyText,
+      request.voice,
+      { ...baseCtx, conversationId: conversation.id },
+      trace,
+      costBreakdown,
+    );
+  }
+
+  private async resolveSttLanguageHint(request: VoiceTurnRequest): Promise<string | undefined> {
+    const fromRequest = request.languageHint?.trim();
+    if (fromRequest) {
+      return fromRequest;
+    }
+
+    const callId = request.callId?.trim();
+    if (!callId) {
+      return undefined;
+    }
+
+    try {
+      const session = await this.sessions.getSession(callId);
+      const fromSession = session.language?.trim();
+      return fromSession || undefined;
+    } catch {
+      // Session may be missing; STT continues without a hint (fail later on utterance if needed).
+      return undefined;
     }
   }
 

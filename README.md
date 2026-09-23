@@ -121,7 +121,8 @@ Sensitive credentials stay in local `.env` / `.env.<APP_ENV>` files (gitignored)
 | `LLM_MODEL`         | no       | Model name                                       |
 | `LLM_API_KEY`       | no       | LLM API key                                      |
 | `STT_PROVIDER`      | no       | Speech-to-text provider (browser POC)            |
-| `STT_MODEL`         | no       | STT model                                        |
+| `STT_MODEL`         | no       | STT model (default whisper-1; multilingual)      |
+| `STT_DEFAULT_LANGUAGE` | no    | Optional default STT hint (`en` \| `hi` \| `hinglish`) |
 | `STT_API_KEY`       | no       | STT API key                                      |
 | `TTS_PROVIDER`      | no       | Text-to-speech provider (browser POC)            |
 | `TTS_MODEL`         | no       | TTS model                                        |
