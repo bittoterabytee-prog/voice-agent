@@ -113,6 +113,7 @@ Sensitive credentials stay in local `.env` / `.env.<APP_ENV>` files (gitignored)
 | `APP_NAME`          | no       | Service name (default `voice-agent`)             |
 | `APP_PORT`          | no       | HTTP port (default `3000`; `PORT` also accepted) |
 | `LOG_LEVEL`         | no       | Pino log level (default `info`)                  |
+| `CORS_ORIGINS`      | no       | Comma-separated browser Origins (or `*`). Non-production default: `http://localhost:5173,http://localhost:5174`. Production default: empty (no CORS) |
 | `DATABASE_URL`      | yes\*\*  | PostgreSQL connection string                     |
 | `LLM_PROVIDER`      | no       | LLM vendor id                                    |
 | `LLM_MODEL`         | no       | Model name                                       |

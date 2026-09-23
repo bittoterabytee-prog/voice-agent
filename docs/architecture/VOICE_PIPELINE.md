@@ -97,6 +97,17 @@ From centralized config (`getConfig()`):
 
 Frontend config belongs in the **separate frontend repo**.
 
+### Browser CORS (KAN-16)
+
+The Express app sends CORS headers for Origins listed in `getConfig().app.corsOrigins` (`CORS_ORIGINS` env, comma-separated, or `*`).
+
+| Environment | Default when `CORS_ORIGINS` unset |
+| ----------- | --------------------------------- |
+| development / test / demo | `http://localhost:5173`, `http://localhost:5174` |
+| production | none (set `CORS_ORIGINS` explicitly) |
+
+Preflight `OPTIONS` returns `204`. This unblocks the Vite UI on port **5174** calling `GET /health`, `POST /api/sessions`, and `POST /api/voice/turn`.
+
 Sprint 2 TTS is English-only with a single default voice (`alloy`). Multilingual voices and adaptive delivery profiles are later sprints.
 
 ## STT API (KAN-11)

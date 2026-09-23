@@ -1,5 +1,6 @@
 import express from "express";
 import { loadConfig } from "./config";
+import { corsMiddleware } from "./middleware/cors";
 import { errorHandler, notFoundHandler, requestLogger } from "./middleware/errorHandler";
 import { healthRouter } from "./routes/health";
 import { llmRouter } from "./routes/llm";
@@ -13,6 +14,7 @@ export function createApp() {
 
   const app = express();
   app.disable("x-powered-by");
+  app.use(corsMiddleware);
   app.use(express.json({ limit: "15mb" }));
   app.use(requestLogger);
   app.use(healthRouter);

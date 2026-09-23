@@ -44,6 +44,10 @@ describe("environment configuration (KAN-8)", () => {
 
     expect(config.app.env).toBe("development");
     expect(config.app.port).toBe(3000);
+    expect(config.app.corsOrigins).toEqual([
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ]);
     expect(config.database.url).toContain("localhost");
     expect(config.llm.provider).toBe("openai");
     expect(config.stt.provider).toBe("openai");
@@ -149,5 +153,23 @@ describe("environment configuration (KAN-8)", () => {
 
     expect(config.app.env).toBe("production");
     expect(config.app.port).toBe(8080);
+    expect(config.app.corsOrigins).toEqual([]);
+  });
+
+  it("parses CORS_ORIGINS and defaults Vite ports outside production", () => {
+    const custom = loadConfig({
+      APP_ENV: "development",
+      CORS_ORIGINS: "http://localhost:5174, https://app.example",
+    });
+    expect(custom.app.corsOrigins).toEqual([
+      "http://localhost:5174",
+      "https://app.example",
+    ]);
+
+    const productionExplicit = loadConfig({
+      APP_ENV: "production",
+      CORS_ORIGINS: "https://voice.example",
+    });
+    expect(productionExplicit.app.corsOrigins).toEqual(["https://voice.example"]);
   });
 });

@@ -48,6 +48,7 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | Question | Primary location |
 | -------- | ---------------- |
 | How does config load? | `src/config/index.ts` |
+| Browser CORS (frontend Origins) | `src/middleware/cors.ts`, `CORS_ORIGINS` / `getConfig().app.corsOrigins` |
 | Health / HTTP entry | `src/app.ts`, `src/routes/health.ts` |
 | Call lifecycle | `src/services/callService.ts`, `src/services/sessionService.ts`, `src/repositories/callRepository.ts` |
 | Conversation turns (in-memory + event rehydrate) | `src/conversation/conversationService.ts` |
