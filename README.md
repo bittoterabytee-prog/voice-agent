@@ -4,7 +4,9 @@ Backend foundation for the AI Voice Agent POC ([KAN-5](https://voiceagentai.atla
 
 The API is the central application layer for calls, conversation state, AI/LLM integrations, browser STT/TTS, appointment tools, and PostgreSQL persistence.
 
-**Project knowledge for AI/MCP clients:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`SYSTEM_FLOW.md`](SYSTEM_FLOW.md) · [`PROJECT_RULES.md`](PROJECT_RULES.md) · [`docs/`](docs/) · [MCP setup](docs/mcp/MCP_SETUP.md) · [Ticket standards](docs/process/TICKET_STANDARDS.md) · [Branch & PR](docs/process/BRANCH_AND_PR.md)
+**Project knowledge:** [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`SYSTEM_FLOW.md`](SYSTEM_FLOW.md) · [`PROJECT_RULES.md`](PROJECT_RULES.md) · [`docs/`](docs/) · [Ticket standards](docs/process/TICKET_STANDARDS.md) · [Branch & PR](docs/process/BRANCH_AND_PR.md)
+
+**Shared MCP / FE+BE agent hub:** https://github.com/bittoterabytee-prog/voice-agent-knowledge
 
 ## Stack
 
@@ -33,7 +35,7 @@ src/
 ├── utils/            Logger and error types
 ├── app.ts            Express application factory
 └── index.ts          Process entrypoint
-docs/                 Architecture, API, DB, AI, voice, MCP knowledge base
+docs/                 Architecture, API, DB, AI, voice knowledge base
 postman/              Postman collection + local environment (KAN-21)
 migrations/           SQL schema migrations
 tests/                Unit and database tests
@@ -186,11 +188,6 @@ docker run --rm -p 3000:3000 --env-file .env voice-agent-backend
 
 Local Qdrant dashboard/API: http://localhost:6333/dashboard
 
-## MCP (repository knowledge)
+## Shared MCP (not in this repo)
 
-To connect Cursor (or another MCP client) to this GitHub repo in **read-only** mode, follow [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md).
-
-```bash
-cp .cursor/mcp.json.example .cursor/mcp.json
-# set YOUR_GITHUB_PAT, then restart Cursor
-```
+MCP client config and cross-repo agent knowledge live in **[voice-agent-knowledge](https://github.com/bittoterabytee-prog/voice-agent-knowledge)**. Do not add `.cursor/mcp.json` here.

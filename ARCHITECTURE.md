@@ -85,7 +85,7 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | AI / RAG / tools | [`docs/ai/`](docs/ai/) |
 | Voice behavior | [`docs/voice/`](docs/voice/) |
 | Testing | [`docs/testing/TESTING_STRATEGY.md`](docs/testing/TESTING_STRATEGY.md) |
-| MCP setup | [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md) |
+| Shared MCP + FE/BE knowledge | https://github.com/bittoterabytee-prog/voice-agent-knowledge |
 | Ticket standards | [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md) |
 | Sprint plan (current + roadmap) | [`docs/process/SPRINT_PLAN.md`](docs/process/SPRINT_PLAN.md) |
 | Browser E2E demo runbook (KAN-17) | [`docs/testing/E2E_BROWSER_VOICE.md`](docs/testing/E2E_BROWSER_VOICE.md) |

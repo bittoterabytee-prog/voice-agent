@@ -49,4 +49,4 @@ Shipping code without covering ticket test cases (or without updating docs for t
 - `npm run deps:up` → Postgres + Qdrant
 - `npm run db:migrate && npm run db:seed`
 - `npm run dev` → `GET /health`
-- MCP: see [`docs/mcp/MCP_SETUP.md`](../mcp/MCP_SETUP.md)
+- Shared MCP / agent knowledge: https://github.com/bittoterabytee-prog/voice-agent-knowledge
