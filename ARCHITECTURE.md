@@ -88,5 +88,6 @@ Related tickets: [KAN-5](https://voiceagentai.atlassian.net/browse/KAN-5), [KAN-
 | MCP setup | [`docs/mcp/MCP_SETUP.md`](docs/mcp/MCP_SETUP.md) |
 | Ticket standards | [`docs/process/TICKET_STANDARDS.md`](docs/process/TICKET_STANDARDS.md) |
 | Sprint plan (current + roadmap) | [`docs/process/SPRINT_PLAN.md`](docs/process/SPRINT_PLAN.md) |
+| Browser E2E demo runbook (KAN-17) | [`docs/testing/E2E_BROWSER_VOICE.md`](docs/testing/E2E_BROWSER_VOICE.md) |
 | Voice / sprint backlog | [`docs/process/BACKLOG.md`](docs/process/BACKLOG.md) |
 | Branch & PR workflow | [`docs/process/BRANCH_AND_PR.md`](docs/process/BRANCH_AND_PR.md) |

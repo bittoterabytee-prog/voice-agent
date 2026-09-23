@@ -148,3 +148,4 @@ calls.status → COMPLETED, end_time set
 | Which file handles conversation state? | DB: `conversationStateRepository`; turns: `conversationService` |
 | How does a call enter the system? | Browser session → `callService.startCall` |
 | Where to add voice behavior? | `src/voice/` + docs under `docs/voice/` |
+| How do I run the browser E2E demo? | [`docs/testing/E2E_BROWSER_VOICE.md`](docs/testing/E2E_BROWSER_VOICE.md) (KAN-17) |
