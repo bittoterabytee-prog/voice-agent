@@ -86,6 +86,7 @@ export async function runVoiceTurn(
       sessionId,
       voice,
       messages,
+      requestId: typeof req.id === "string" ? req.id : String(req.id ?? ""),
     });
 
     res.status(200).json(result);

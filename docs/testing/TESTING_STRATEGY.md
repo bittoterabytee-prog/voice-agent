@@ -19,7 +19,7 @@
 | TTS (KAN-13) | `tests/tts.test.ts` |
 | Voice pipeline (KAN-14) | `tests/voicePipeline.test.ts` |
 | Postman sync (KAN-21) | `tests/postmanCollection.test.ts` |
-| Errors | `tests/errorHandler.test.ts` |
+| Errors | `tests/errorHandler.test.ts`, `tests/voicePipelineLogging.test.ts` (KAN-18) |
 | Integrations fail-closed | `tests/integrations.test.ts` |
 | Postgres schema/repos | `tests/db/postgres.test.ts` |
 

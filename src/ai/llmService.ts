@@ -27,9 +27,16 @@ export type LlmCompletionRequest = {
   enableTools?: boolean;
 };
 
+export type LlmTokenUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+};
+
 export type LlmCompletionResponse = {
   text: string;
   toolCalls?: LlmToolCall[];
+  usage?: LlmTokenUsage;
 };
 
 export type LlmFetch = typeof fetch;
@@ -58,6 +65,11 @@ type OpenAiChatResponse = {
   choices?: Array<{
     message?: OpenAiChatMessage;
   }>;
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
 };
 
 function parseToolArguments(raw: string | undefined): Record<string, unknown> {
@@ -202,9 +214,22 @@ export class LlmService {
       throw new ExternalServiceError("llm", "LLM provider returned an empty completion");
     }
 
+    const promptTokens = Number(payload.usage?.prompt_tokens ?? 0);
+    const completionTokens = Number(payload.usage?.completion_tokens ?? 0);
+    const totalTokens = Number(payload.usage?.total_tokens ?? promptTokens + completionTokens);
+    const usage: LlmTokenUsage | undefined =
+      promptTokens > 0 || completionTokens > 0
+        ? {
+            promptTokens,
+            completionTokens,
+            totalTokens: Number.isFinite(totalTokens) ? totalTokens : promptTokens + completionTokens,
+          }
+        : undefined;
+
     return {
       text,
       ...(toolCalls.length > 0 ? { toolCalls } : {}),
+      ...(usage ? { usage } : {}),
     };
   }
 }

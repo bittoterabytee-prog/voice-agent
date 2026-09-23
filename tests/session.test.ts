@@ -181,4 +181,53 @@ describe("KAN-15 conversation session & context management", () => {
       service.handleUserUtterance(started.callId, "hello again"),
     ).rejects.toThrow(/closed/i);
   });
+
+  it("KAN-18 lists sessions and call_events over HTTP for Call History", async () => {
+    const service = new SessionService();
+    const a = await service.startSession({ callerNumber: "browser-a", language: "en" });
+    await service.appendTurn(a.callId, { role: "user", content: "hello" });
+    await service.appendTurn(a.callId, { role: "assistant", content: "hi" });
+    await callEventRepository.create({
+      callId: a.callId,
+      eventType: "TOOL_FAILED",
+      metadata: {
+        kind: "voice_pipeline",
+        stage: "tts",
+        softFail: true,
+        code: "EXTERNAL_SERVICE_UNAVAILABLE",
+        message: "TTS soft fail",
+      },
+    });
+    await service.completeSession(a.callId);
+
+    const list = await request(createApp()).get("/api/sessions?limit=10");
+    expect(list.status).toBe(200);
+    const listed = list.body.sessions.find((s: { callId: string }) => s.callId === a.callId);
+    expect(listed).toBeTruthy();
+    expect(typeof listed.estimatedUsd).toBe("number");
+
+    const spend = await request(createApp()).get("/api/usage/summary");
+    expect(spend.status).toBe(200);
+    expect(spend.body).toMatchObject({
+      currency: "USD",
+      callCount: expect.any(Number),
+      turnCount: expect.any(Number),
+    });
+    expect(typeof spend.body.estimatedUsdTotal).toBe("number");
+    expect(spend.body.note).toMatch(/not a live OpenAI wallet/i);
+
+    const eventsRes = await request(createApp()).get(`/api/sessions/${a.callId}/events`);
+    expect(eventsRes.status).toBe(200);
+    expect(eventsRes.body.callId).toBe(a.callId);
+    const types = eventsRes.body.events.map((e: { eventType: string }) => e.eventType);
+    expect(types).toEqual(
+      expect.arrayContaining(["CALL_STARTED", "USER_SPEECH", "AGENT_RESPONSE", "TOOL_FAILED", "CALL_ENDED"]),
+    );
+    const failure = eventsRes.body.events.find(
+      (e: { eventType: string; metadata?: { kind?: string } }) =>
+        e.eventType === "TOOL_FAILED" && e.metadata?.kind === "voice_pipeline",
+    );
+    expect(failure?.metadata?.stage).toBe("tts");
+    expect(failure?.metadata?.softFail).toBe(true);
+  });
 });

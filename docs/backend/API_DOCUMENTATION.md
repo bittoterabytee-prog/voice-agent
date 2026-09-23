@@ -163,11 +163,77 @@ Both fields optional (`callerNumber` defaults to `browser`, `language` to `en`).
 
 Creates `calls` + `conversation_states` and emits `CALL_STARTED`.
 
+### `GET /api/sessions`
+
+**Purpose:** List recent sessions for Call History (KAN-18).
+
+**Query:** `limit` optional (default 50, max 200).
+
+**Response `200`:**
+
+```json
+{
+  "sessions": [
+    {
+      "callId": "<uuid>",
+      "callerNumber": "browser",
+      "language": "en",
+      "callStatus": "COMPLETED",
+      "currentState": "CALL_COMPLETED",
+      "intent": null,
+      "startTime": "2026-09-23T05:00:00.000Z",
+      "endTime": "2026-09-23T05:05:00.000Z",
+      "durationMs": 300000,
+      "estimatedUsd": 0.0012
+    }
+  ]
+}
+```
+
+`estimatedUsd` is the sum of tracked `openai_usage` events for that call (list-price estimate; not a live wallet balance).
+
+### `GET /api/usage/summary`
+
+**Purpose:** Estimated POC OpenAI spend so far (KAN-18). Sums `TOOL_CALLED` / `openai_usage` events across recent calls.
+
+**Response `200`:**
+
+```json
+{
+  "currency": "USD",
+  "estimatedUsdTotal": 0.0042,
+  "turnCount": 3,
+  "callCount": 12,
+  "note": "Estimated POC spend from tracked OpenAI usage events; not a live OpenAI wallet balance."
+}
+```
+
 ### `GET /api/sessions/:callId`
 
 **Purpose:** Load session snapshot (state + LLM `messages`).
 
 **Response `200`:** same shape as start. **`404 NOT_FOUND`** if unknown.
+
+### `GET /api/sessions/:callId/events`
+
+**Purpose:** List durable `call_events` for a session (speech, replies, wait/end, pipeline `TOOL_FAILED`, usage `TOOL_CALLED` / `openai_usage`).
+
+**Response `200`:**
+
+```json
+{
+  "callId": "<uuid>",
+  "events": [
+    {
+      "id": "<uuid>",
+      "callId": "<uuid>",
+      "eventType": "USER_SPEECH",
+      "timestamp": "2026-09-23T05:01:00.000Z",
+      "metadata": { "text": "hello" }
+    }
+  ]
+}
+```
 
 ### `POST /api/sessions/:callId/turns`
 
@@ -219,5 +285,9 @@ Unhandled/`AppError` responses go through `errorHandler` and must not include se
   }
 }
 ```
+
+Credential-like substrings (e.g. `sk-…`, `Bearer …`, `api_key=…`) are redacted to `[REDACTED]` in both logs and exposed messages (KAN-18).
+
+Voice turn failures with a durable `callId` also persist `call_events` (`TOOL_FAILED`, metadata `kind: "voice_pipeline"`) for STT/LLM hard failures and TTS soft-failures.
 
 Saved Success/Fail examples for each current endpoint live in the Postman collection.
