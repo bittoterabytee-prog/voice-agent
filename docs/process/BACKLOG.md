@@ -29,7 +29,7 @@ Complete: config, DB, MCP, architecture/process docs, backend SRD knowledge. See
 | 11 | Implement Real-Time Voice Conversation Pipeline | Backend | Done | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) |
 | 12 | Implement Conversation Session & Context Management | Backend | Done | [KAN-15](https://voiceagentai.atlassian.net/browse/KAN-15) |
 | 13 | Implement Voice Agent UI (+ backend CORS for :5174) | Frontend / Backend | CORS Done; UI in FE repo | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) |
-| 14 | Implement End-to-End Browser Voice Conversation | Full Stack | In Progress | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) |
+| 14 | Implement End-to-End Browser Voice Conversation | Full Stack | Done | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) |
 | 15 | Add Voice Pipeline Logging & Error Handling | Backend | To Do | [KAN-18](https://voiceagentai.atlassian.net/browse/KAN-18) |
 | 16 | Add Postman collection for all HTTP APIs | Backend | Done | [KAN-21](https://voiceagentai.atlassian.net/browse/KAN-21) |
 
