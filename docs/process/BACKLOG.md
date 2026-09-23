@@ -26,12 +26,14 @@ Complete: config, DB, MCP, architecture/process docs, backend SRD knowledge. See
 | 8 | Implement Speech-to-Text Integration | Backend/AI | Done | [KAN-11](https://voiceagentai.atlassian.net/browse/KAN-11) |
 | 9 | Implement LLM Conversation Service | Backend/AI | Done | [KAN-12](https://voiceagentai.atlassian.net/browse/KAN-12) |
 | 10 | Implement Text-to-Speech Integration | Backend/AI | Done | [KAN-13](https://voiceagentai.atlassian.net/browse/KAN-13) |
-| 11 | Implement Real-Time Voice Conversation Pipeline | Backend | In Progress | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) |
+| 11 | Implement Real-Time Voice Conversation Pipeline | Backend | Done | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) |
 | 12 | Implement Conversation Session & Context Management | Backend | Done | [KAN-15](https://voiceagentai.atlassian.net/browse/KAN-15) |
-| 13 | Implement Voice Agent UI | Frontend | To Do | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) |
-| 14 | Implement End-to-End Browser Voice Conversation | Full Stack | To Do | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) |
+| 13 | Implement Voice Agent UI (+ backend CORS for :5174) | Frontend / Backend | CORS Done; UI in FE repo | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) |
+| 14 | Implement End-to-End Browser Voice Conversation | Full Stack | In Progress | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) |
 | 15 | Add Voice Pipeline Logging & Error Handling | Backend | To Do | [KAN-18](https://voiceagentai.atlassian.net/browse/KAN-18) |
 | 16 | Add Postman collection for all HTTP APIs | Backend | Done | [KAN-21](https://voiceagentai.atlassian.net/browse/KAN-21) |
+
+**E2E runbook (KAN-17):** [`../testing/E2E_BROWSER_VOICE.md`](../testing/E2E_BROWSER_VOICE.md).
 
 **Epic (Sprint 2 container):** Create Epic **Sprint 2 — Basic Voice Agent** in Jira and set Parent on KAN-10–KAN-18 / KAN-21 (label `sprint-2`). Until then, treat those keys as the active sprint To Do set per this doc.
 

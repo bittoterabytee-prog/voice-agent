@@ -135,6 +135,14 @@ No telephony phone numbers or voice-carrier credentials are required for this br
 
 Invalid or missing required values fail startup with a clear configuration error.
 
+## Browser E2E demo (KAN-17)
+
+Run backend + frontend for a multi-turn voice conversation:
+
+→ Full checklist and API cheat sheet: [`docs/testing/E2E_BROWSER_VOICE.md`](docs/testing/E2E_BROWSER_VOICE.md)
+
+Quick path: `npm run deps:up && npm run db:migrate && npm run dev` (API `:3000`), open frontend **`http://localhost:5174/calls`**, confirm System Status Healthy, then Start → speak → Send turn (twice) → Stop.
+
 ## Database
 
 PostgreSQL is the source of truth for patients, doctors, appointments, calls, conversation state, and call events.

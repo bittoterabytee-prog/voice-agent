@@ -13,6 +13,7 @@
 | Health | `tests/health.test.ts` |
 | Config (KAN-8) | `tests/config.test.ts` |
 | CORS (KAN-16 UI) | `tests/cors.test.ts` |
+| Browser E2E contract (KAN-17) | `tests/e2eBrowserContract.test.ts` + runbook [`E2E_BROWSER_VOICE.md`](E2E_BROWSER_VOICE.md) |
 | STT (KAN-11) | `tests/stt.test.ts` |
 | LLM (KAN-12) | `tests/llm.test.ts` |
 | TTS (KAN-13) | `tests/tts.test.ts` |

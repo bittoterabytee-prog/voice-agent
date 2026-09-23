@@ -56,13 +56,15 @@ Do **not** open new Foundation tickets unless something foundational is missing.
 | P0 | [KAN-12](https://voiceagentai.atlassian.net/browse/KAN-12) | LLM conversation service | Backend/AI | Done |
 | P0 | [KAN-13](https://voiceagentai.atlassian.net/browse/KAN-13) | Text-to-speech integration | Backend/AI | Done |
 | P1 | [KAN-15](https://voiceagentai.atlassian.net/browse/KAN-15) | Conversation session & context management | Backend | Done |
-| P1 | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) | Real-time voice conversation pipeline | Backend | In Progress |
-| P1 | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) | Voice agent UI | Frontend | To Do |
-| P2 | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) | End-to-end browser voice conversation | Full Stack | To Do |
+| P1 | [KAN-14](https://voiceagentai.atlassian.net/browse/KAN-14) | Real-time voice conversation pipeline | Backend | Done |
+| P1 | [KAN-16](https://voiceagentai.atlassian.net/browse/KAN-16) | Voice agent UI (+ backend CORS) | Frontend / Backend | CORS Done (PR #8); UI in FE repo |
+| P2 | [KAN-17](https://voiceagentai.atlassian.net/browse/KAN-17) | End-to-end browser voice conversation | Full Stack | In Progress |
 | P2 | [KAN-18](https://voiceagentai.atlassian.net/browse/KAN-18) | Voice pipeline logging & error handling | Backend | To Do |
 | P2 | [KAN-21](https://voiceagentai.atlassian.net/browse/KAN-21) | Postman collection for HTTP APIs | Backend | Done |
 
 **Suggested order:** KAN-10 → KAN-11 / KAN-12 / KAN-13 → KAN-15 → KAN-14 → KAN-16 → KAN-17, with KAN-18 in parallel after pipeline exists. KAN-21 can land anytime after routes exist.
+
+**E2E runbook:** [`docs/testing/E2E_BROWSER_VOICE.md`](../testing/E2E_BROWSER_VOICE.md) (KAN-17).
 
 **Sprint 2 out of scope** (defer to later sprints): Hindi/Hinglish switching, book/cancel/reschedule tools, wait/hold & barge-in productization, RAG corpus, adaptive TTS profiles, 300-scenario suite.
 
