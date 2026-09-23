@@ -134,11 +134,14 @@ Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures ar
     "confidence": 0.92,
     "unclear": false,
     "unsupported": false
-  }
+  },
+  "language": "en"
 }
 ```
 
 `languageHint` is optional on the turn request and is also forwarded into STT (KAN-24). When omitted but `callId` is set, the session `language` is used as the STT hint. Only **en / hi / hinglish** are in scope. If STT or language detection marks another language as unsupported, the turn skips the LLM and returns a fixed English fallback asking the caller to continue in English, Hindi, or Hinglish (TTS still attempted). Provider-detected STT language feeds language detection confidence; the transcript still wins when they disagree for in-scope languages. `languageDetection.language` is `en`, `hi`, `hinglish`, or `null` when `unclear` / `unsupported` is true. A detection failure is logged without secrets and the turn continues with `unclear: true`. This stage does not book appointments.
+
+**Session language (KAN-28):** When `callId` is set and detection is clear (`en` | `hi` | `hinglish`), the pipeline updates `calls.language` and `conversation_states.language` and may emit `LANGUAGE_CHANGED`. Unclear / unsupported detections leave the prior preference unchanged. Turn responses include top-level `language` (durable session preference) alongside `languageDetection` (this utterance).
 
 If TTS fails after LLM succeeds, `audioBase64` may be omitted and `ttsError` is set (`code`, `message`, `service`). STT/LLM failures return `502` `EXTERNAL_SERVICE_UNAVAILABLE`. No telephony provider is required.
 
@@ -157,7 +160,7 @@ See [`docs/architecture/VOICE_PIPELINE.md`](../architecture/VOICE_PIPELINE.md) f
 }
 ```
 
-Both fields optional (`callerNumber` defaults to `browser`, `language` to `en`).
+Both fields optional (`callerNumber` defaults to `browser`, `language` to `en`). Allowed `language` values: **`en`**, **`hi`**, **`hinglish`** (KAN-28). Other codes return `400` `VALIDATION_ERROR`.
 
 **Response `201`:**
 

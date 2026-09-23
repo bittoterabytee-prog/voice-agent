@@ -84,6 +84,11 @@ export type VoiceTurnResponse = {
   cost?: TurnCostEstimate;
   /** Utterance language for the single conversation engine (KAN-23). */
   languageDetection?: LanguageDetectionResult;
+  /**
+   * Durable session language preference (en | hi | hinglish) when `callId` is set (KAN-28).
+   * Updated from clear detection results; unchanged on unclear/unsupported.
+   */
+  language?: string;
 };
 
 export type VoicePipelineServiceOptions = {
@@ -207,6 +212,9 @@ export class VoicePipelineService {
         response.cost = sumTurnCost(costBreakdown);
         if (response.callId) {
           await this.persistTurnUsage(response.callId, response.cost, requestId);
+          if (!response.language) {
+            response.language = await this.readSessionLanguage(response.callId);
+          }
         }
         logPipelineStage("info", "Voice pipeline turn success (unsupported language)", {
           ...baseCtx,
@@ -222,11 +230,19 @@ export class VoicePipelineService {
       }
 
       const callId = request.callId?.trim();
+      let sessionLanguage: string | undefined;
+      if (callId) {
+        sessionLanguage = await this.persistDetectedSessionLanguage(callId, languageDetection);
+      }
+
       const response = callId
         ? await this.runTurnWithSession(callId, transcript, request, baseCtx, trace, costBreakdown)
         : await this.runTurnInMemory(transcript, request, baseCtx, trace, costBreakdown);
 
       response.languageDetection = languageDetection;
+      if (sessionLanguage) {
+        response.language = sessionLanguage;
+      }
       response.requestId = requestId;
       response.pipeline = trace.toJSON();
       response.cost = sumTurnCost(costBreakdown);
@@ -288,6 +304,7 @@ export class VoicePipelineService {
           currentState: utterance.currentState,
           action: utterance.action,
           languageDetection,
+          language: utterance.language,
         };
         return this.attachTts(response, replyText, request.voice, baseCtx, trace, costBreakdown);
       } catch {
@@ -327,12 +344,34 @@ export class VoicePipelineService {
       return undefined;
     }
 
+    return this.readSessionLanguage(callId);
+  }
+
+  /**
+   * When detection is clear (en|hi|hinglish), persist on the session and return the preference.
+   * Unclear / unsupported leave the prior session language unchanged (KAN-28).
+   */
+  private async persistDetectedSessionLanguage(
+    callId: string,
+    detection: LanguageDetectionResult,
+  ): Promise<string | undefined> {
+    if (detection.language && !detection.unclear && !detection.unsupported) {
+      try {
+        const updated = await this.sessions.updateLanguage(callId, detection.language);
+        return updated.language;
+      } catch {
+        return this.readSessionLanguage(callId);
+      }
+    }
+    return this.readSessionLanguage(callId);
+  }
+
+  private async readSessionLanguage(callId: string): Promise<string | undefined> {
     try {
       const session = await this.sessions.getSession(callId);
       const fromSession = session.language?.trim();
       return fromSession || undefined;
     } catch {
-      // Session may be missing; STT continues without a hint (fail later on utterance if needed).
       return undefined;
     }
   }
@@ -452,6 +491,7 @@ export class VoicePipelineService {
       sessionId: request.sessionId,
       currentState: utterance.currentState,
       action: utterance.action,
+      language: utterance.language,
     };
 
     return this.attachTts(response, replyText, request.voice, ctx, trace, costBreakdown);

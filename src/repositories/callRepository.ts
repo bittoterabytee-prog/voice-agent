@@ -47,6 +47,18 @@ export class CallRepository {
     );
     return result.rows[0] ? toCall(result.rows[0]) : null;
   }
+
+  /** Persist session language preference on the call row (KAN-28). */
+  async updateLanguage(id: string, language: string): Promise<Call | null> {
+    const result = await getPool().query(
+      `UPDATE calls
+       SET language = $2
+       WHERE id = $1
+       RETURNING *`,
+      [id, language],
+    );
+    return result.rows[0] ? toCall(result.rows[0]) : null;
+  }
 }
 
 export const callRepository = new CallRepository();

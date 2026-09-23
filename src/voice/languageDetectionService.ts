@@ -8,6 +8,24 @@ export const LANGUAGE_CODES = ["en", "hi", "hinglish"] as const;
 
 export type LanguageCode = (typeof LANGUAGE_CODES)[number];
 
+/** True when value is a POC session language code (en | hi | hinglish). */
+export function isLanguageCode(value: string): value is LanguageCode {
+  return (LANGUAGE_CODES as readonly string[]).includes(value);
+}
+
+/**
+ * Normalize a session language preference (KAN-28).
+ * Empty / missing → `en`. Unsupported codes return null (caller decides reject vs default).
+ */
+export function normalizeLanguageCode(value: string | undefined | null): LanguageCode | null {
+  const raw = value?.trim();
+  if (!raw) {
+    return "en";
+  }
+  const normalized = raw.toLowerCase();
+  return isLanguageCode(normalized) ? normalized : null;
+}
+
 export type LanguageDetectionHints = {
   /** Optional STT provider tag, e.g. "en", "hi", "en-US". Transcript wins when they disagree. */
   providerLanguage?: string;
