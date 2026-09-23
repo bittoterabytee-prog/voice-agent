@@ -97,7 +97,7 @@ Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures ar
 
 ### `POST /api/voice/turn`
 
-**Purpose:** Run one realtime voice turn end-to-end (KAN-14): STT → LLM → TTS.
+**Purpose:** Run one realtime voice turn end-to-end (KAN-14, KAN-23): STT → language detection → LLM → TTS.
 
 **Request body:**
 
@@ -109,7 +109,8 @@ Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures ar
   "sessionId": "browser-...",
   "conversationId": "<optional>",
   "messages": [{ "role": "user", "content": "optional prior context" }],
-  "voice": "alloy"
+  "voice": "alloy",
+  "languageHint": "en"
 }
 ```
 
@@ -122,9 +123,17 @@ Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures ar
   "audioBase64": "<base64>",
   "mimeType": "audio/mpeg",
   "conversationId": "<uuid>",
-  "sessionId": "browser-..."
+  "sessionId": "browser-...",
+  "languageDetection": {
+    "language": "en",
+    "confidence": 0.92,
+    "unclear": false,
+    "unsupported": false
+  }
 }
 ```
+
+`languageHint` is optional. `languageDetection.language` is `en`, `hi`, `hinglish`, or `null` when `unclear` is true. A detection failure is logged without secrets and the turn continues with `unclear: true`. This stage does not change the LLM reply language (later sprint stories) and does not book appointments.
 
 If TTS fails after LLM succeeds, `audioBase64` may be omitted and `ttsError` is set (`code`, `message`, `service`). STT/LLM failures return `502` `EXTERNAL_SERVICE_UNAVAILABLE`. No telephony provider is required.
 

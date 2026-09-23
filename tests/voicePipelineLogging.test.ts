@@ -99,7 +99,12 @@ describe("KAN-18 voice pipeline logging & error handling", () => {
     expect(result.audioBase64).toBeTruthy();
     expect(result.ttsError).toBeUndefined();
     expect(result.pipeline?.requestId).toBe("req-happy-1");
-    expect(result.pipeline?.stages.map((s) => s.stage)).toEqual(["stt", "llm", "tts"]);
+    expect(result.pipeline?.stages.map((s) => s.stage)).toEqual([
+      "stt",
+      "language",
+      "llm",
+      "tts",
+    ]);
     expect(result.pipeline?.stages.every((s) => s.outcome === "success")).toBe(true);
     expect(result.cost?.currency).toBe("USD");
     expect(result.cost?.estimatedUsd).toBeGreaterThan(0);

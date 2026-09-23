@@ -844,7 +844,7 @@
               }
             },
             "url": "{{baseUrl}}/api/voice/turn",
-            "description": "Orchestrated STT → session context → LLM → TTS (KAN-14/KAN-15). Pass `callId` from POST /api/sessions for durable context."
+            "description": "Orchestrated STT → language detection → session context → LLM → TTS (KAN-14/KAN-15/KAN-23). Pass `callId` from POST /api/sessions for durable context. Optional `languageHint` does not override the transcript."
           },
           "response": [
             {
@@ -872,7 +872,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"transcript\": \"I need an appointment\",\n  \"replyText\": \"I can help you schedule.\",\n  \"audioBase64\": \"<base64-mpeg>\",\n  \"mimeType\": \"audio/mpeg\",\n  \"conversationId\": \"<uuid>\",\n  \"callId\": \"<uuid>\",\n  \"action\": \"continue\",\n  \"currentState\": \"ACTIVE_CONVERSATION\"\n}"
+              "body": "{\n  \"transcript\": \"I need an appointment\",\n  \"replyText\": \"I can help you schedule.\",\n  \"audioBase64\": \"<base64-mpeg>\",\n  \"mimeType\": \"audio/mpeg\",\n  \"conversationId\": \"<uuid>\",\n  \"callId\": \"<uuid>\",\n  \"action\": \"continue\",\n  \"currentState\": \"ACTIVE_CONVERSATION\",\n  \"languageDetection\": {\n    \"language\": \"en\",\n    \"confidence\": 0.92,\n    \"unclear\": false,\n    \"unsupported\": false\n  }\n}"
             },
             {
               "name": "Fail — 400 VALIDATION_ERROR",

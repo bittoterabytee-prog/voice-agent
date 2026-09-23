@@ -12,6 +12,7 @@ type VoiceTurnBody = {
   messages?: unknown;
   voice?: unknown;
   sessionId?: unknown;
+  languageHint?: unknown;
 };
 
 function decodeAudioBase64(value: unknown): Uint8Array {
@@ -75,6 +76,7 @@ export async function runVoiceTurn(
     const callId = typeof body.callId === "string" ? body.callId : undefined;
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : undefined;
     const voice = typeof body.voice === "string" ? body.voice : undefined;
+    const languageHint = typeof body.languageHint === "string" ? body.languageHint : undefined;
     const messages = parseMessages(body.messages);
 
     const result = await new VoicePipelineService().runTurn({
@@ -85,6 +87,7 @@ export async function runVoiceTurn(
       callId,
       sessionId,
       voice,
+      languageHint,
       messages,
       requestId: typeof req.id === "string" ? req.id : String(req.id ?? ""),
     });
