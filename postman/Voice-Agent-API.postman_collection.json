@@ -65,7 +65,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"audioBase64\": \"AQID\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\"\n}",
+              "raw": "{\n  \"audioBase64\": \"AQID\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\",\n  \"languageHint\": \"hi\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -73,7 +73,7 @@
               }
             },
             "url": "{{baseUrl}}/api/stt/transcribe",
-            "description": "Convert browser-captured audio to text (KAN-11).\n\nReplace `audioBase64` with a real base64 audio clip for a live success run."
+            "description": "Convert browser-captured audio to text (KAN-11, KAN-24 multilingual).\n\nOptional `languageHint`: en | hi | hinglish (or ISO tags). Hinglish leaves Whisper language unset for auto-detect. Response may include provider `language`.\n\nReplace `audioBase64` with a real base64 audio clip for a live success run."
           },
           "response": [
             {
@@ -88,7 +88,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"audioBase64\": \"<base64-audio>\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\"\n}"
+                  "raw": "{\n  \"audioBase64\": \"<base64-audio>\",\n  \"mimeType\": \"audio/webm\",\n  \"fileName\": \"clip.webm\",\n  \"languageHint\": \"en\"\n}"
                 },
                 "url": "{{baseUrl}}/api/stt/transcribe"
               },
@@ -101,7 +101,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"text\": \"I would like to book an appointment\"\n}"
+              "body": "{\n  \"text\": \"I would like to book an appointment\",\n  \"language\": \"en\"\n}"
             },
             {
               "name": "Fail — 400 VALIDATION_ERROR",
@@ -520,6 +520,24 @@
                 }
               ],
               "body": "{\n  \"currency\": \"USD\",\n  \"estimatedUsdTotal\": 0,\n  \"turnCount\": 0,\n  \"callCount\": 0,\n  \"note\": \"Estimated POC spend from tracked OpenAI usage events; not a live OpenAI wallet balance.\"\n}"
+            },
+            {
+              "name": "Fail — 502 EXTERNAL_SERVICE_UNAVAILABLE",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/usage/summary"
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"EXTERNAL_SERVICE_UNAVAILABLE\",\n    \"message\": \"Database is unavailable\",\n    \"service\": \"database\"\n  }\n}"
             }
           ]
         },
@@ -596,6 +614,24 @@
                 }
               ],
               "body": "{\n  \"callId\": \"<uuid>\",\n  \"events\": []\n}"
+            },
+            {
+              "name": "Fail — 404 NOT_FOUND",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{baseUrl}}/api/sessions/:callId/events"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Session not found: <uuid>\"\n  }\n}"
             }
           ]
         },

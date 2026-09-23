@@ -8,7 +8,7 @@ import {
 } from "../src/voice/languageDetectionService";
 import { SttService } from "../src/voice/sttService";
 import { TtsService } from "../src/voice/ttsService";
-import { VoicePipelineService } from "../src/voice/voicePipelineService";
+import { VoicePipelineService, UNSUPPORTED_LANGUAGE_REPLY } from "../src/voice/voicePipelineService";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -99,6 +99,16 @@ describe("KAN-23 language detection", () => {
     expect(agreed.confidence).toBeGreaterThan(plain.confidence);
   });
 
+  it("flags out-of-scope provider languages as unsupported (en/hi/hinglish only)", () => {
+    expect(
+      detector.detect("Hello, I want to book an appointment.", { providerLanguage: "fr" }),
+    ).toMatchObject({
+      language: null,
+      unclear: true,
+      unsupported: true,
+    });
+  });
+
   it("TC-005 redacts secrets when detection throws and still returns a text reply", async () => {
     const errorSpy = vi.spyOn(logger, "error");
     const llm = mockLlm("I can help with that.");
@@ -160,11 +170,45 @@ describe("KAN-23 language detection", () => {
     });
 
     expect(order).toEqual(["stt", "llm"]);
+    expect(stt.transcribe).toHaveBeenCalledWith(
+      expect.objectContaining({ languageHint: "hi" }),
+    );
     expect(result.languageDetection?.language).toBe("hinglish");
     expect(result.pipeline?.stages.map((stage) => stage.stage)).toEqual([
       "stt",
       "language",
       "llm",
+      "tts",
+    ]);
+  });
+
+  it("skips LLM and returns a fallback reply for unsupported languages", async () => {
+    const stt = {
+      transcribe: vi.fn(async () => ({
+        text: "Bonjour je voudrais un rendez vous",
+        language: "fr",
+        supported: false,
+      })),
+    } as unknown as SttService;
+    const llm = {
+      complete: vi.fn(async () => ({ text: "should not run" })),
+    } as unknown as LlmService;
+
+    const pipeline = new VoicePipelineService({
+      stt,
+      llm,
+      tts: mockTts(),
+      conversation: new ConversationService(),
+    });
+
+    const result = await pipeline.runTurn({ audio: new Uint8Array([7, 8, 9]) });
+
+    expect(llm.complete).not.toHaveBeenCalled();
+    expect(result.languageDetection?.unsupported).toBe(true);
+    expect(result.replyText).toBe(UNSUPPORTED_LANGUAGE_REPLY);
+    expect(result.pipeline?.stages.map((stage) => stage.stage)).toEqual([
+      "stt",
+      "language",
       "tts",
     ]);
   });

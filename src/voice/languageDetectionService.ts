@@ -297,7 +297,18 @@ export class LanguageDetectionService {
       if (unknown >= 3 || other > 0) {
         return UNSUPPORTED;
       }
+      // Whisper/provider said a non-POC language (fr, es, …).
+      if (normalizeHint(hints?.providerLanguage) === "other") {
+        return UNSUPPORTED;
+      }
       return UNCLEAR;
+    }
+
+    // Provider reports an out-of-scope language and the transcript is not clearly
+    // Hindi/Hinglish (Devanagari or Hindi lexicon) — treat as unsupported.
+    const providerHint = normalizeHint(hints?.providerLanguage);
+    if (providerHint === "other" && language === "en" && hindiHits === 0 && devanagari === 0) {
+      return UNSUPPORTED;
     }
 
     return applyHint(

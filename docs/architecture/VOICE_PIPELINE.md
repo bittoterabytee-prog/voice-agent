@@ -170,7 +170,7 @@ Preflight `OPTIONS` returns `204`. This unblocks the Vite UI on port **5174** ca
 
 Sprint 2 TTS is English-only with a single default voice (`alloy`). Multilingual voices and adaptive delivery profiles are later sprints.
 
-## STT API (KAN-11)
+## STT API (KAN-11 / KAN-24 multilingual)
 
 `POST /api/stt/transcribe`
 
@@ -180,15 +180,20 @@ Request:
 {
   "audioBase64": "<base64 audio bytes or data-URL>",
   "mimeType": "audio/webm",
-  "fileName": "clip.webm"
+  "fileName": "clip.webm",
+  "languageHint": "hi"
 }
 ```
+
+`languageHint` is optional. `en` / `hi` map to Whisper ISO codes; `hinglish` leaves language unset for auto-detect. Voice turns also pass session `language` when `callId` is set and the body omits a hint.
 
 Response `200`:
 
 ```json
-{ "text": "transcribed utterance" }
+{ "text": "transcribed utterance", "language": "hi", "supported": true }
 ```
+
+`supported: false` means Whisper reported a language outside **en/hi**. Voice turns then set `languageDetection.unsupported` and reply with a fixed “English / Hindi / Hinglish only” message (no LLM).
 
 Errors:
 
@@ -197,7 +202,7 @@ Errors:
 | Missing/empty/invalid audio | `VALIDATION_ERROR` | 400 |
 | Missing STT config / provider failure | `EXTERNAL_SERVICE_UNAVAILABLE` | 502 |
 
-Supported provider today: `openai` (Whisper transcriptions API). Model defaults to `whisper-1` when `STT_MODEL` is unset.
+Supported provider today: `openai` (Whisper transcriptions API, `verbose_json`). Model defaults to `whisper-1` when `STT_MODEL` is unset. Optional `STT_DEFAULT_LANGUAGE` seeds a default hint. One shared STT path for English, Hindi, and Hinglish — no per-language agent stacks.
 
 ## LLM API (KAN-12)
 

@@ -6,6 +6,7 @@ type TranscribeBody = {
   audioBase64?: unknown;
   mimeType?: unknown;
   fileName?: unknown;
+  languageHint?: unknown;
 };
 
 function decodeAudioBase64(value: unknown): Uint8Array {
@@ -40,8 +41,14 @@ export async function transcribeAudio(
     const audio = decodeAudioBase64(body.audioBase64);
     const mimeType = typeof body.mimeType === "string" ? body.mimeType : undefined;
     const fileName = typeof body.fileName === "string" ? body.fileName : undefined;
+    const languageHint = typeof body.languageHint === "string" ? body.languageHint : undefined;
 
-    const result = await new SttService().transcribe({ audio, mimeType, fileName });
+    const result = await new SttService().transcribe({
+      audio,
+      mimeType,
+      fileName,
+      languageHint,
+    });
     res.status(200).json(result);
   } catch (error) {
     next(error);

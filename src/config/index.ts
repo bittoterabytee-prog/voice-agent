@@ -45,6 +45,8 @@ const rawEnvSchema = z
     STT_PROVIDER: optionalNonEmptyString,
     STT_API_KEY: optionalNonEmptyString,
     STT_MODEL: optionalNonEmptyString,
+    /** Optional default STT language hint (en | hi | hinglish / ISO). Auto when unset (KAN-24). */
+    STT_DEFAULT_LANGUAGE: optionalNonEmptyString,
     TTS_PROVIDER: optionalNonEmptyString,
     TTS_API_KEY: optionalNonEmptyString,
     TTS_MODEL: optionalNonEmptyString,
@@ -111,6 +113,8 @@ export type AppConfig = {
     provider?: string;
     model?: string;
     apiKey?: string;
+    /** Default Whisper language hint when the request omits languageHint (KAN-24). */
+    defaultLanguage?: string;
   };
   tts: {
     provider?: string;
@@ -167,6 +171,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       provider: raw.STT_PROVIDER,
       model: raw.STT_MODEL,
       apiKey: raw.STT_API_KEY,
+      defaultLanguage: raw.STT_DEFAULT_LANGUAGE,
     },
     tts: {
       provider: raw.TTS_PROVIDER,
