@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import { createApp } from "../src/app";
 import { ExternalServiceError, ValidationError } from "../src/utils/errors";
-import { normalizeProviderLanguage, resolveWhisperLanguage, SttService } from "../src/voice/sttService";
+import { normalizeProviderLanguage, resolveWhisperLanguage, sanitizeWhisperTranscript, SttService } from "../src/voice/sttService";
 import { resetConfigCache } from "../src/config";
 
 afterEach(() => {
@@ -55,8 +55,20 @@ describe("KAN-11 / KAN-24 speech-to-text", () => {
     });
     const form = await readFormLanguage(init as RequestInit);
     expect(form.responseFormat).toBe("verbose_json");
-    expect(form.prompt).toMatch(/Hinglish/i);
+    expect(form.prompt).toMatch(/Vivek Modi/i);
+    expect(form.prompt).not.toMatch(/Transcribe exactly/i);
     expect(form.language).toBeNull();
+  });
+
+  it("strips Whisper prompt-echo transcripts so they never become USER_SPEECH", () => {
+    expect(
+      sanitizeWhisperTranscript(
+        "Transcribe exactly what was spoken in English, Hindi, or Hinglish. If the caller speaks Hindi…",
+      ),
+    ).toBe("");
+    expect(sanitizeWhisperTranscript("Hello, my name is Vivek Modi.")).toBe(
+      "Hello, my name is Vivek Modi.",
+    );
   });
 
   it("TC-002 fails closed when STT is not configured", async () => {
@@ -108,11 +120,30 @@ describe("KAN-11 / KAN-24 speech-to-text", () => {
     );
   });
 
-  it("KAN-24 maps language hints for English and Hindi Whisper language", () => {
-    expect(resolveWhisperLanguage("en")).toBe("en");
-    expect(resolveWhisperLanguage("en-US")).toBe("en");
-    expect(resolveWhisperLanguage("hi")).toBe("hi");
-    expect(resolveWhisperLanguage("hi-IN")).toBe("hi");
+  it("returns empty text for silent clips so the pipeline can soft-fallback (KAN-30)", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ text: "   ", language: "hi" }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    const service = new SttService({
+      apiKey: "sk-test",
+      provider: "openai",
+      model: "whisper-1",
+      fetchImpl: fetchMock as typeof fetch,
+    });
+    const result = await service.transcribe({ audio: new Uint8Array([1, 2, 3, 4]) });
+    expect(result.text).toBe("");
+    expect(result.language).toBe("hi");
+  });
+
+  it("KAN-24 never forces Whisper language from POC hints (mid-call EN/HI auto-detect)", () => {
+    expect(resolveWhisperLanguage("en")).toBeUndefined();
+    expect(resolveWhisperLanguage("en-US")).toBeUndefined();
+    expect(resolveWhisperLanguage("hi")).toBeUndefined();
+    expect(resolveWhisperLanguage("hi-IN")).toBeUndefined();
     expect(resolveWhisperLanguage("hinglish")).toBeUndefined();
     expect(resolveWhisperLanguage("auto")).toBeUndefined();
     expect(normalizeProviderLanguage("english")).toBe("en");
@@ -138,7 +169,7 @@ describe("KAN-11 / KAN-24 speech-to-text", () => {
     expect(result.language).toBe("en");
   });
 
-  it("KAN-24 TC-001/002 passes languageHint into Whisper and returns provider language", async () => {
+  it("KAN-24 TC-001/002: hi hint auto-detects (no forced Whisper language) for mixed name accuracy", async () => {
     const fetchMock = vi.fn(
       async () =>
         new Response(JSON.stringify({ text: "मुझे कल आना है", language: "hi" }), {
@@ -162,7 +193,8 @@ describe("KAN-11 / KAN-24 speech-to-text", () => {
     expect(result.language).toBe("hi");
     expect(result.supported).toBe(true);
     const form = await readFormLanguage(fetchMock.mock.calls[0]![1] as RequestInit);
-    expect(form.language).toBe("hi");
+    // Forcing Whisper language=hi mangles English Indian names; auto-detect instead.
+    expect(form.language).toBeNull();
   });
 
   it("KAN-24 omits Whisper language for hinglish so mixed speech can auto-detect", async () => {
@@ -208,7 +240,7 @@ describe("KAN-11 / KAN-24 speech-to-text", () => {
     await service.transcribe({ audio: new Uint8Array([1, 2, 3, 4]) });
 
     const form = await readFormLanguage(fetchMock.mock.calls[0]![1] as RequestInit);
-    expect(form.language).toBe("en");
+    expect(form.language).toBeNull();
   });
 
   it("POST /api/stt/transcribe returns text for valid base64 audio", async () => {
@@ -236,7 +268,7 @@ describe("KAN-11 / KAN-24 speech-to-text", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ text: "hello clinic", language: "en", supported: true });
     const form = await readFormLanguage(fetchMock.mock.calls[0]![1] as RequestInit);
-    expect(form.language).toBe("en");
+    expect(form.language).toBeNull();
   });
 
   it("KAN-24 ignores out-of-scope language hints and flags unsupported provider languages", async () => {

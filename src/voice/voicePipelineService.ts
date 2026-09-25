@@ -213,7 +213,13 @@ export class VoicePipelineService {
         trace,
       );
 
-      if (!sttSupported && !languageDetection.unsupported) {
+      // Trust a clear in-scope transcript (incl. explicit "speak in Hindi") over Whisper's
+      // out-of-scope language tag — otherwise English switch requests become false unsupported.
+      if (
+        !sttSupported &&
+        !languageDetection.unsupported &&
+        !(languageDetection.language && !languageDetection.unclear)
+      ) {
         languageDetection = {
           language: null,
           confidence: 0,

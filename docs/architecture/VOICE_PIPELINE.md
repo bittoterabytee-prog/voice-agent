@@ -131,6 +131,8 @@ Mid-call switches stay on the **same** `callId` / conversation engine. Clear det
 3. Sets response `languageChanged: true` when `callId` is present
 4. Keeps prior turns in `messages` so LLM/TTS use the new reply language without starting a new session
 
+**Explicit switch requests:** English (or romanized) phrases like “speak in Hindi”, “Can you speak in Hindi, please?”, or “talk in Hinglish” classify as the *requested* reply language (`hi` / `hinglish` / `en`) so session preference and LLM/TTS update — even when the utterance itself is English. Whisper `supported: false` does not override a clear in-scope transcript classification.
+
 Consecutive same-language turns leave preference unchanged (`languageChanged: false`, no `LANGUAGE_CHANGED`). Unclear / unsupported detections do not switch. Hinglish is handled by the same engine — not a third agent.
 
 ## Multilingual error & fallback (KAN-30)
@@ -216,7 +218,7 @@ Request:
 }
 ```
 
-`languageHint` is optional. `en` / `hi` map to Whisper ISO codes; `hinglish` leaves language unset for auto-detect. Voice turns also pass session `language` when `callId` is set and the body omits a hint.
+`languageHint` is optional. Whisper always auto-detects for POC languages (`en` / `hi` / `hinglish` hints do not set Whisper `language`) so mid-call Hindi is not forced into English text. Domain vocabulary is biased via the STT prompt. Voice turns still pass session `language` as a soft hint into the pipeline for detection/LLM; it is not forced on Whisper.
 
 Response `200`:
 
@@ -233,7 +235,7 @@ Errors:
 | Missing/empty/invalid audio | `VALIDATION_ERROR` | 400 |
 | Missing STT config / provider failure | `EXTERNAL_SERVICE_UNAVAILABLE` | 502 |
 
-Supported provider today: `openai` (Whisper transcriptions API, `verbose_json`). Model defaults to `whisper-1` when `STT_MODEL` is unset. Optional `STT_DEFAULT_LANGUAGE` seeds a default hint. One shared STT path for English, Hindi, and Hinglish — no per-language agent stacks.
+Supported provider today: `openai` (Whisper transcriptions API, `verbose_json`). Model defaults to `whisper-1` when `STT_MODEL` is unset. Optional `STT_DEFAULT_LANGUAGE` is not forced onto Whisper (auto-detect). The STT prompt is **example-only** vocabulary priming (no “Transcribe…” instructions); leaked prompt text is sanitized out of transcripts before the pipeline continues. One shared STT path for English, Hindi, and Hinglish — no per-language agent stacks.
 
 ## LLM API (KAN-12)
 
