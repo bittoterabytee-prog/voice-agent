@@ -233,4 +233,55 @@ describe("KAN-27 dynamic language switching", () => {
     expect(tts.synthesize).toHaveBeenCalledWith(expect.objectContaining({ language: "hi" }));
     expect(turn.replyText).not.toMatch(/only help in English/i);
   });
+
+  it("KAN-31 TC-003 preserves context across EN → HI → EN on the same callId", async () => {
+    const sessions = new SessionService();
+    const started = await sessions.startSession({ language: "en" });
+
+    await new VoicePipelineService({
+      stt: mockStt("I need a cardiologist on Tuesday", "en"),
+      llm: mockLlm("What time works?"),
+      tts: mockTts(),
+      sessions,
+    }).runTurn({ audio: new Uint8Array([1]), callId: started.callId });
+
+    const hiLlm = mockLlm("Theek hai, main madad karunga.");
+    await new VoicePipelineService({
+      stt: mockStt("Namaste, mujhe milna hai", "hi"),
+      llm: hiLlm,
+      tts: mockTts(),
+      sessions,
+    }).runTurn({ audio: new Uint8Array([2]), callId: started.callId });
+
+    const enLlm = mockLlm("Sure — still Tuesday for the cardiologist.");
+    const enTts = mockTts();
+    const turn3 = await new VoicePipelineService({
+      stt: mockStt("Please continue in English", "en"),
+      llm: enLlm,
+      tts: enTts,
+      sessions,
+    }).runTurn({ audio: new Uint8Array([3]), callId: started.callId });
+
+    expect(turn3.callId).toBe(started.callId);
+    expect(turn3.language).toBe("en");
+    expect(turn3.languageChanged).toBe(true);
+    expect(enLlm.complete).toHaveBeenCalledWith(expect.objectContaining({ language: "en" }));
+    expect(enTts.synthesize).toHaveBeenCalledWith(expect.objectContaining({ language: "en" }));
+
+    const messages = (enLlm.complete as ReturnType<typeof vi.fn>).mock.calls[0]![0].messages as Array<{
+      content: string;
+    }>;
+    expect(messages.some((m) => m.content.includes("cardiologist"))).toBe(true);
+    expect(messages.some((m) => m.content.includes("milna"))).toBe(true);
+
+    const events = await callEventRepository.listByCallId(started.callId);
+    const changed = events.filter((e) => e.eventType === "LANGUAGE_CHANGED");
+    expect(changed.length).toBeGreaterThanOrEqual(2);
+    expect(changed.map((e) => e.metadata)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ from: "en", to: "hi" }),
+        expect.objectContaining({ from: "hi", to: "en" }),
+      ]),
+    );
+  });
 });
