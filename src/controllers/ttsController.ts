@@ -5,6 +5,7 @@ import { TtsService } from "../voice/ttsService";
 type SynthesizeBody = {
   text?: unknown;
   voice?: unknown;
+  language?: unknown;
 };
 
 export async function synthesizeSpeech(
@@ -18,8 +19,12 @@ export async function synthesizeSpeech(
       throw new ValidationError("text is required");
     }
     const voice = typeof body.voice === "string" ? body.voice : undefined;
+    if (body.language !== undefined && typeof body.language !== "string") {
+      throw new ValidationError("language must be a string");
+    }
+    const language = typeof body.language === "string" ? body.language : undefined;
 
-    const result = await new TtsService().synthesize({ text: body.text, voice });
+    const result = await new TtsService().synthesize({ text: body.text, voice, language });
     const audioBase64 = Buffer.from(result.audio).toString("base64");
 
     res.status(200).json({

@@ -77,18 +77,19 @@ Uses `getConfig().llm` (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`). Failures ar
 
 ### `POST /api/tts/synthesize`
 
-**Purpose:** Convert assistant reply text to playable audio (KAN-13).
+**Purpose:** Convert assistant reply text to playable audio (KAN-13 / KAN-26).
 
 **Request body:**
 
 ```json
 {
   "text": "assistant reply to speak",
-  "voice": "alloy"
+  "voice": "alloy",
+  "language": "hi"
 }
 ```
 
-`voice` is optional (OpenAI default `alloy`).
+`voice` is optional. Optional `language` (`en` | `hi` | `hinglish`) selects a default OpenAI voice when `voice` is omitted: **en → `alloy`**, **hi / hinglish → `nova`**. Explicit `voice` always wins. One TTS stack for all languages — not separate agents. Adaptive delivery profiles remain a later sprint.
 
 **Response `200`:**
 
@@ -99,7 +100,7 @@ Uses `getConfig().llm` (`LLM_PROVIDER`, `LLM_API_KEY`, `LLM_MODEL`). Failures ar
 }
 ```
 
-Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures are fail-closed and must not leak API keys. Sprint 2 scope is English browser playback, not multilingual or adaptive voice profiles.
+Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures are fail-closed and must not leak API keys.
 
 ### `POST /api/voice/turn`
 
@@ -145,6 +146,8 @@ Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures ar
 **Session language (KAN-28):** When `callId` is set and detection is clear (`en` | `hi` | `hinglish`), the pipeline updates `calls.language` and `conversation_states.language` and may emit `LANGUAGE_CHANGED`. Unclear / unsupported detections leave the prior preference unchanged. Turn responses include top-level `language` (durable session preference) alongside `languageDetection` (this utterance).
 
 **Multilingual LLM (KAN-25):** The same `LlmService` receives `language` (clear detection → else session → else `en`) so the system prompt instructs the reply language. Prior conversation turns stay in `messages` across switches. `enableTools` remains false on the voice path (no appointment tool calling in Sprint 3).
+
+**Multilingual TTS (KAN-26):** The same `TtsService` receives that reply `language` so default OpenAI voice is `alloy` (en) or `nova` (hi / hinglish). Client `voice` override still wins. Soft-fail `ttsError` behavior is unchanged.
 
 If TTS fails after LLM succeeds, `audioBase64` may be omitted and `ttsError` is set (`code`, `message`, `service`). STT/LLM failures return `502` `EXTERNAL_SERVICE_UNAVAILABLE`. No telephony provider is required.
 
