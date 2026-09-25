@@ -122,6 +122,17 @@ When `callId` is present and detection returns a clear `en` | `hi` | `hinglish` 
 
 `POST /api/sessions` defaults `language` to `en` and rejects unsupported codes with `400`. `POST /api/voice/turn` responses expose top-level `language` (session preference) plus `languageDetection` (utterance classification). No appointment logic.
 
+## Dynamic language switching (KAN-27)
+
+Mid-call switches stay on the **same** `callId` / conversation engine. Clear detection that differs from the stored preference:
+
+1. Persists via `SessionService.updateLanguage` (same as KAN-28)
+2. Emits `LANGUAGE_CHANGED` with `metadata.from` / `metadata.to`
+3. Sets response `languageChanged: true` when `callId` is present
+4. Keeps prior turns in `messages` so LLM/TTS use the new reply language without starting a new session
+
+Consecutive same-language turns leave preference unchanged (`languageChanged: false`, no `LANGUAGE_CHANGED`). Unclear / unsupported detections do not switch. Hinglish is handled by the same engine — not a third agent.
+
 ## Multilingual LLM replies (KAN-25)
 
 One `LlmService` / conversation engine for all languages. After detection (and optional session persist), the pipeline resolves reply language as:

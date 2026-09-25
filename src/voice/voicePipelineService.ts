@@ -90,6 +90,11 @@ export type VoiceTurnResponse = {
    * Updated from clear detection results; unchanged on unclear/unsupported.
    */
   language?: string;
+  /**
+   * True when this turn changed the durable session language (KAN-27).
+   * Only set when `callId` is present.
+   */
+  languageChanged?: boolean;
 };
 
 export type VoicePipelineServiceOptions = {
@@ -232,8 +237,11 @@ export class VoicePipelineService {
 
       const callId = request.callId?.trim();
       let sessionLanguage: string | undefined;
+      let languageChanged = false;
       if (callId) {
-        sessionLanguage = await this.persistDetectedSessionLanguage(callId, languageDetection);
+        const persist = await this.persistDetectedSessionLanguage(callId, languageDetection);
+        sessionLanguage = persist.language;
+        languageChanged = persist.changed;
       }
 
       const replyLanguage = this.resolveTurnReplyLanguage(languageDetection, sessionLanguage);
@@ -262,6 +270,9 @@ export class VoicePipelineService {
         response.language = sessionLanguage;
       } else if (!response.language) {
         response.language = replyLanguage;
+      }
+      if (callId) {
+        response.languageChanged = languageChanged;
       }
       response.requestId = requestId;
       response.pipeline = trace.toJSON();
@@ -384,20 +395,35 @@ export class VoicePipelineService {
   /**
    * When detection is clear (en|hi|hinglish), persist on the session and return the preference.
    * Unclear / unsupported leave the prior session language unchanged (KAN-28).
+   * `changed` is true only when the durable preference actually switched (KAN-27).
    */
   private async persistDetectedSessionLanguage(
     callId: string,
     detection: LanguageDetectionResult,
-  ): Promise<string | undefined> {
+  ): Promise<{ language?: string; changed: boolean }> {
+    const previous = await this.readSessionLanguage(callId);
+
     if (detection.language && !detection.unclear && !detection.unsupported) {
       try {
         const updated = await this.sessions.updateLanguage(callId, detection.language);
-        return updated.language;
+        const language = updated.language;
+        const changed = Boolean(previous && language && previous !== language);
+        if (changed) {
+          logPipelineStage("info", "Voice pipeline language switched", {
+            callId,
+            stage: "language",
+            outcome: "success",
+            from: previous,
+            to: language,
+          });
+        }
+        return { language, changed };
       } catch {
-        return this.readSessionLanguage(callId);
+        return { language: previous, changed: false };
       }
     }
-    return this.readSessionLanguage(callId);
+
+    return { language: previous, changed: false };
   }
 
   private async readSessionLanguage(callId: string): Promise<string | undefined> {
