@@ -8,7 +8,7 @@ import {
 } from "../src/voice/languageDetectionService";
 import { SttService } from "../src/voice/sttService";
 import { TtsService } from "../src/voice/ttsService";
-import { VoicePipelineService, UNSUPPORTED_LANGUAGE_REPLY } from "../src/voice/voicePipelineService";
+import { VoicePipelineService, UNSUPPORTED_LANGUAGE_REPLY, UNCLEAR_SPEECH_REPLY } from "../src/voice/voicePipelineService";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -129,7 +129,8 @@ describe("KAN-23 language detection", () => {
       sessionId: "browser-lang-1",
     });
 
-    expect(result.replyText).toBe("I can help with that.");
+    // KAN-30: detection failure → unclear soft fallback (skip LLM).
+    expect(result.replyText).toBe(UNCLEAR_SPEECH_REPLY);
     expect(result.languageDetection).toEqual({
       language: null,
       confidence: 0,
@@ -139,7 +140,7 @@ describe("KAN-23 language detection", () => {
     const logged = JSON.stringify(errorSpy.mock.calls);
     expect(logged).not.toContain("sk-testkey12345678");
     expect(logged).toContain("[REDACTED]");
-    expect(llm.complete).toHaveBeenCalled();
+    expect(llm.complete).not.toHaveBeenCalled();
   });
 
   it("runs detection after STT and before LLM on a voice turn", async () => {
