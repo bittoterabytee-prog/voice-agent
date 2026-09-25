@@ -86,6 +86,41 @@ describe("KAN-23 language detection", () => {
     });
   });
 
+  it("TC-005 English 'speak in Hindi' requests switch to hi (not unsupported)", () => {
+    expect(detector.detect("Speak in Hindi, brother.")).toMatchObject({
+      language: "hi",
+      unclear: false,
+      unsupported: false,
+    });
+    expect(detector.detect("Can you speak in Hindi, please?")).toMatchObject({
+      language: "hi",
+      unclear: false,
+      unsupported: false,
+    });
+    expect(detector.detect("Please switch to English")).toMatchObject({
+      language: "en",
+      unclear: false,
+      unsupported: false,
+    });
+    expect(detector.detect("Talk in Hinglish please")).toMatchObject({
+      language: "hinglish",
+      unclear: false,
+      unsupported: false,
+    });
+  });
+
+  it("does not mark Latin English with Indian names as unsupported", () => {
+    expect(
+      detector.detect(
+        "I think the last one for Manohar Lal Modi first, let's go for that.",
+      ),
+    ).toMatchObject({
+      language: "en",
+      unclear: false,
+      unsupported: false,
+    });
+  });
+
   it("does not let a provider hint override a clear transcript", () => {
     const hinted = detector.detect("Hello, I want to book an appointment.", {
       providerLanguage: "hi",

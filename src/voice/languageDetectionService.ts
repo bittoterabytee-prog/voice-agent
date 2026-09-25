@@ -158,45 +158,129 @@ const HINDI_WORDS = new Set([
   "zaroor",
 ]);
 
-/** English content words. Tiny stopwords that collide with Hindi are omitted. */
+/** English content + common function words (names stay unknown; French still has ~0 hits). */
 const ENGLISH_WORDS = new Set([
   "about",
+  "again",
+  "also",
   "am",
+  "and",
   "appointment",
+  "are",
   "around",
+  "assist",
+  "assistant",
+  "available",
+  "be",
   "book",
   "booking",
+  "brother",
+  "but",
   "can",
   "cancel",
+  "change",
+  "check",
   "clinic",
+  "continue",
   "could",
+  "course",
+  "dentist",
+  "did",
+  "do",
   "doctor",
+  "does",
+  "english",
   "evening",
+  "family",
+  "first",
+  "for",
+  "from",
+  "general",
+  "get",
+  "go",
+  "had",
+  "has",
+  "have",
   "hello",
   "help",
+  "here",
   "hi",
+  "hold",
+  "how",
+  "husband",
+  "if",
+  "is",
+  "it",
+  "just",
+  "language",
+  "last",
+  "let",
+  "lets",
   "like",
+  "me",
   "monday",
   "morning",
+  "my",
+  "name",
   "need",
   "next",
   "night",
+  "not",
+  "of",
+  "ok",
+  "okay",
+  "one",
+  "or",
   "please",
   "pm",
+  "proceed",
+  "ready",
+  "reply",
   "reschedule",
+  "respond",
   "schedule",
-  "slot",
+  "slots",
+  "some",
+  "son",
+  "speak",
+  "sure",
+  "switch",
+  "take",
+  "talk",
   "thank",
   "thanks",
+  "that",
+  "the",
+  "then",
+  "there",
+  "think",
+  "this",
   "time",
+  "to",
   "today",
   "tomorrow",
+  "too",
   "tuesday",
+  "until",
+  "us",
+  "wait",
   "want",
+  "was",
+  "we",
   "wednesday",
   "week",
+  "were",
+  "what",
+  "when",
+  "where",
+  "while",
+  "who",
+  "why",
+  "wife",
+  "will",
   "with",
   "would",
+  "yes",
   "you",
 ]);
 
@@ -280,6 +364,56 @@ function confidenceFor(language: LanguageCode, hindiHits: number, englishHits: n
   return hits >= 2 ? 0.92 : 0.75;
 }
 
+/**
+ * Explicit mid-call reply-language requests (KAN-27).
+ * English (or romanized) "speak in Hindi" must switch session reply language even
+ * though the utterance itself is English.
+ */
+export function detectRequestedReplyLanguage(text: string): LanguageCode | null {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (/[\u0900-\u097F]/.test(trimmed) && /(?:हिंदी|हिन्दी)/.test(trimmed)) {
+    // Devanagari mention of Hindi usually means "use Hindi" when paired with request verbs,
+    // but pure Hindi content is handled by lexicon — only treat as switch when request-like.
+    if (/(?:बोल|बात|करो|कीजिए|कृपया)/.test(trimmed)) {
+      return "hi";
+    }
+  }
+
+  const t = trimmed.toLowerCase();
+
+  if (
+    /\bhinglish\b/.test(t) &&
+    /\b(?:speak|talk|reply|respond|continue|switch|change|use|in)\b/.test(t)
+  ) {
+    return "hinglish";
+  }
+
+  if (
+    /\b(?:speak|talk|reply|respond|continue)\b.{0,48}\bhindi\b/.test(t) ||
+    /\b(?:switch|change)\b.{0,48}\bhindi\b/.test(t) ||
+    /\bin\s+hindi\b/.test(t) ||
+    /\bhindi\s+(?:please|mein|me)\b/.test(t) ||
+    /\b(?:baat|bolo|bolie|boliye|karo)\b.{0,24}\bhindi\b/.test(t) ||
+    /\bhindi\b.{0,24}\b(?:baat|bolo|bolie|boliye|karo)\b/.test(t)
+  ) {
+    return "hi";
+  }
+
+  if (
+    /\b(?:speak|talk|reply|respond|continue)\b.{0,48}\benglish\b/.test(t) ||
+    /\b(?:switch|change)\b.{0,48}\benglish\b/.test(t) ||
+    /\bin\s+english\b/.test(t) ||
+    /\benglish\s+please\b/.test(t)
+  ) {
+    return "en";
+  }
+
+  return null;
+}
+
 export class LanguageDetectionService {
   detect(text: string, hints?: LanguageDetectionHints): LanguageDetectionResult {
     const trimmed = text.trim();
@@ -290,6 +424,20 @@ export class LanguageDetectionService {
     const { latin, devanagari, other } = scriptCounts(trimmed);
     if (latin === 0 && devanagari === 0 && other === 0) {
       return UNCLEAR;
+    }
+
+    // Prefer explicit "speak in X" over lexicon-of-the-utterance (KAN-27 mid-call switch).
+    const requested = detectRequestedReplyLanguage(trimmed);
+    if (requested) {
+      return applyHint(
+        {
+          language: requested,
+          confidence: 0.96,
+          unclear: false,
+          unsupported: false,
+        },
+        hints,
+      );
     }
 
     const tokens = trimmed.toLowerCase().match(/[a-z]+/g) ?? [];
@@ -312,11 +460,16 @@ export class LanguageDetectionService {
 
     const language = classify(hindiHits, englishHits, devanagari);
     if (!language) {
-      if (unknown >= 3 || other > 0) {
+      // Latin-only English with many proper nouns (names) must not become "unsupported"
+      // just because unknown >= 3. Only treat as unsupported when there are no EN/HI
+      // lexicon hits (e.g. French) or non-Latin/non-Devanagari script.
+      if (other > 0 && hindiHits === 0 && englishHits === 0) {
         return UNSUPPORTED;
       }
-      // Whisper/provider said a non-POC language (fr, es, …).
-      if (normalizeHint(hints?.providerLanguage) === "other") {
+      if (latin > 0 && englishHits === 0 && hindiHits === 0 && unknown >= 3) {
+        return UNSUPPORTED;
+      }
+      if (normalizeHint(hints?.providerLanguage) === "other" && englishHits === 0 && hindiHits === 0) {
         return UNSUPPORTED;
       }
       return UNCLEAR;

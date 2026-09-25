@@ -35,7 +35,7 @@ No authentication.
 }
 ```
 
-`languageHint` is optional (`en` | `hi` | `hinglish` or ISO tags like `en-US`). For `hinglish`, Whisper `language` is omitted so mixed speech can auto-detect. When unset, `STT_DEFAULT_LANGUAGE` may apply.
+`languageHint` is optional (`en` | `hi` | `hinglish` or ISO tags like `en-US`). Whisper `language` is omitted for all POC hints so mid-call Hindi/English can auto-detect (forcing `en` after an English start made Hindi turns look English). Out-of-scope hints (`fr`, `es`, …) are ignored for Whisper biasing.
 
 **Response `200`:**
 

@@ -38,9 +38,66 @@ export type SttServiceOptions = {
 
 const OPENAI_TRANSCRIPTIONS_URL = "https://api.openai.com/v1/audio/transcriptions";
 
-/** Prompt helps Whisper stay on clinic EN/HI/Hinglish vocabulary when language is auto. */
-const MULTILINGUAL_STT_PROMPT =
-  "Clinic appointment receptionist. English, Hindi, or Hinglish speech about booking, doctors, and times.";
+/**
+ * Short example-only priming for Whisper (KAN-24).
+ * Avoid instructional phrasing ("Transcribe…", "Do not…") — Whisper often echoes those
+ * into the transcript when the clip is quiet or unclear.
+ */
+export const MULTILINGUAL_STT_PROMPT =
+  "Hello, my name is Vivek Modi. Mujhe dentist ka appointment chahiye for Uma Modi and Manohar Lal Modi. " +
+  "Nahi yaar, aap se nahi hoga. Bahut shukriya.";
+
+/** Markers that indicate Whisper echoed our priming / meta prompt into the transcript. */
+const PROMPT_LEAK_MARKERS = [
+  "transcribe exactly",
+  "transcribe what was spoken",
+  "if the caller speaks",
+  "keep hindi/romanized",
+  "do not translate",
+  "medical clinic front desk",
+  "prefer lal over islam",
+  "do not invent a different name",
+  "indian names:",
+];
+
+/**
+ * Drop Whisper prompt-echo transcripts (or strip a leaked prefix) so they never
+ * reach the conversation as USER_SPEECH.
+ */
+export function sanitizeWhisperTranscript(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  const lower = trimmed.toLowerCase();
+  const leaked = PROMPT_LEAK_MARKERS.some((marker) => lower.includes(marker));
+  if (!leaked) {
+    return trimmed;
+  }
+
+  // Whole utterance is prompt junk (common on short/quiet clips).
+  const speechRatio =
+    trimmed.replace(/[^A-Za-z\u0900-\u097F]/g, "").length / Math.max(trimmed.length, 1);
+  if (speechRatio < 0.15 || lower.startsWith("transcribe") || lower.startsWith("medical clinic")) {
+    return "";
+  }
+
+  // Prompt text sometimes prepended before real speech — cut from first sentence break
+  // after a leak marker when remaining text looks like a caller utterance.
+  for (const marker of PROMPT_LEAK_MARKERS) {
+    const idx = lower.indexOf(marker);
+    if (idx < 0) {
+      continue;
+    }
+    const after = trimmed.slice(idx + marker.length).replace(/^[\s:.\-–—]+/, "");
+    if (after.length >= 8 && !PROMPT_LEAK_MARKERS.some((m) => after.toLowerCase().includes(m))) {
+      return after.trim();
+    }
+  }
+
+  return "";
+}
 
 function toUint8Array(audio: ArrayBuffer | Uint8Array): Uint8Array {
   return audio instanceof Uint8Array ? audio : new Uint8Array(audio);
@@ -55,37 +112,13 @@ function extensionForMime(mimeType: string): string {
 }
 
 /**
- * Map POC / session language tags to a Whisper ISO-639-1 code.
- * Only English and Hindi are passed to Whisper. Hinglish / unknown / other
- * languages omit `language` so Whisper auto-detects (never force fr/es/…).
+ * POC language hints never force Whisper `language` (always auto-detect).
+ * Forcing `en` after an English session start makes mid-call Hindi speech come back
+ * as English text, so only a strongly Hindi line appears to "switch". Forcing `hi`
+ * mangles English Indian names. Domain vocabulary is biased via MULTILINGUAL_STT_PROMPT.
  */
 export function resolveWhisperLanguage(hint?: string): string | undefined {
-  if (!hint) {
-    return undefined;
-  }
-  const normalized = hint.trim().toLowerCase().replace(/_/g, "-");
-  if (!normalized) {
-    return undefined;
-  }
-
-  if (
-    normalized === "hinglish" ||
-    normalized === "hi-en" ||
-    normalized === "en-hi" ||
-    normalized === "auto"
-  ) {
-    return undefined;
-  }
-
-  const primary = normalized.split("-")[0] ?? normalized;
-  if (primary === "en" || primary === "english") {
-    return "en";
-  }
-  if (primary === "hi" || primary === "hindi" || primary === "hin") {
-    return "hi";
-  }
-
-  // Out-of-scope tags (fr, es, …) are ignored — do not bias Whisper.
+  void hint;
   return undefined;
 }
 
@@ -234,11 +267,11 @@ export class SttService {
       throw new ExternalServiceError("stt", "Speech-to-text provider returned an invalid response");
     }
 
-    const text = typeof payload.text === "string" ? payload.text.trim() : "";
-    if (!text) {
-      throw new ExternalServiceError("stt", "Speech-to-text provider returned empty transcript");
-    }
-
+    const text = sanitizeWhisperTranscript(
+      typeof payload.text === "string" ? payload.text : "",
+    );
+    // Empty transcripts are a soft outcome for the voice pipeline (KAN-30 unclear
+    // fallback). Do not hard-fail the turn — silent / too-short clips happen in the browser.
     const providerLanguage = normalizeProviderLanguage(
       typeof payload.language === "string" ? payload.language : undefined,
     ) ?? language;

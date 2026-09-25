@@ -197,4 +197,40 @@ describe("KAN-27 dynamic language switching", () => {
     }>;
     expect(messages.some((m) => m.content.includes("cardiologist"))).toBe(true);
   });
+
+  it("TC-005 English 'speak in Hindi' switches session language and LLM reply language", async () => {
+    const sessions = new SessionService();
+    const started = await sessions.startSession({ language: "en" });
+
+    await new VoicePipelineService({
+      stt: mockStt("Hello, my name is Vivek", "en"),
+      llm: mockLlm("Hello Vivek."),
+      tts: mockTts(),
+      sessions,
+    }).runTurn({ audio: new Uint8Array([1]), callId: started.callId });
+
+    const llm = mockLlm("Ji bilkul, main Hindi mein madad karunga.");
+    const tts = mockTts();
+    const turn = await new VoicePipelineService({
+      stt: {
+        transcribe: vi.fn(async () => ({
+          text: "Can you speak in Hindi, please?",
+          language: "en",
+          // Whisper may mis-tag; transcript + switch intent must still win.
+          supported: false,
+        })),
+      } as unknown as SttService,
+      llm,
+      tts,
+      sessions,
+    }).runTurn({ audio: new Uint8Array([2]), callId: started.callId });
+
+    expect(turn.languageDetection?.language).toBe("hi");
+    expect(turn.languageDetection?.unsupported).toBe(false);
+    expect(turn.language).toBe("hi");
+    expect(turn.languageChanged).toBe(true);
+    expect(llm.complete).toHaveBeenCalledWith(expect.objectContaining({ language: "hi" }));
+    expect(tts.synthesize).toHaveBeenCalledWith(expect.objectContaining({ language: "hi" }));
+    expect(turn.replyText).not.toMatch(/only help in English/i);
+  });
 });
