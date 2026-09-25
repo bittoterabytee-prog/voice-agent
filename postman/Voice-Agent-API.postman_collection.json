@@ -176,7 +176,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"prompt\": \"Hi, what are your clinic hours?\",\n  \"messages\": [],\n  \"includeSystemPrompt\": true,\n  \"enableTools\": false\n}",
+              "raw": "{\n  \"prompt\": \"Hi, what are your clinic hours?\",\n  \"messages\": [],\n  \"includeSystemPrompt\": true,\n  \"enableTools\": false,\n  \"language\": \"en\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -184,7 +184,7 @@
               }
             },
             "url": "{{baseUrl}}/api/llm/complete",
-            "description": "Run one LLM conversation turn (KAN-12).\n\nProvide `prompt` and/or `messages`."
+            "description": "Run one LLM conversation turn (KAN-12 / KAN-25).\n\nProvide `prompt` and/or `messages`. Optional `language` (en | hi | hinglish) sets reply-language instructions in the system prompt."
           },
           "response": [
             {

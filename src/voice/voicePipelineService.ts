@@ -1,4 +1,5 @@
 import { LlmService, type LlmMessage } from "../ai/llmService";
+import { resolveReplyLanguage } from "../ai/prompts";
 import {
   ConversationService,
   conversationService as defaultConversationService,
@@ -235,13 +236,32 @@ export class VoicePipelineService {
         sessionLanguage = await this.persistDetectedSessionLanguage(callId, languageDetection);
       }
 
+      const replyLanguage = this.resolveTurnReplyLanguage(languageDetection, sessionLanguage);
+
       const response = callId
-        ? await this.runTurnWithSession(callId, transcript, request, baseCtx, trace, costBreakdown)
-        : await this.runTurnInMemory(transcript, request, baseCtx, trace, costBreakdown);
+        ? await this.runTurnWithSession(
+            callId,
+            transcript,
+            request,
+            baseCtx,
+            trace,
+            costBreakdown,
+            replyLanguage,
+          )
+        : await this.runTurnInMemory(
+            transcript,
+            request,
+            baseCtx,
+            trace,
+            costBreakdown,
+            replyLanguage,
+          );
 
       response.languageDetection = languageDetection;
       if (sessionLanguage) {
         response.language = sessionLanguage;
+      } else if (!response.language) {
+        response.language = replyLanguage;
       }
       response.requestId = requestId;
       response.pipeline = trace.toJSON();
@@ -331,6 +351,19 @@ export class VoicePipelineService {
       trace,
       costBreakdown,
     );
+  }
+
+  /**
+   * Prefer clear detection language; otherwise session preference; else en (KAN-25).
+   */
+  private resolveTurnReplyLanguage(
+    detection: LanguageDetectionResult,
+    sessionLanguage: string | undefined,
+  ): string {
+    if (detection.language && !detection.unclear && !detection.unsupported) {
+      return resolveReplyLanguage(detection.language);
+    }
+    return resolveReplyLanguage(sessionLanguage);
   }
 
   private async resolveSttLanguageHint(request: VoiceTurnRequest): Promise<string | undefined> {
@@ -433,6 +466,7 @@ export class VoicePipelineService {
     baseCtx: PipelineLogContext,
     trace: ReturnType<typeof createPipelineTrace>,
     costBreakdown: StageUsageEstimate[],
+    replyLanguage: string,
   ): Promise<VoiceTurnResponse> {
     const utterance = await this.sessions.handleUserUtterance(callId, transcript);
     const ctx: PipelineLogContext = {
@@ -459,6 +493,7 @@ export class VoicePipelineService {
               messages,
               includeSystemPrompt: true,
               enableTools: false,
+              language: replyLanguage,
             }),
           trace,
         );
@@ -503,6 +538,7 @@ export class VoicePipelineService {
     baseCtx: PipelineLogContext,
     trace: ReturnType<typeof createPipelineTrace>,
     costBreakdown: StageUsageEstimate[],
+    replyLanguage: string,
   ): Promise<VoiceTurnResponse> {
     const conversation = this.resolveConversation(request);
     const ctx: PipelineLogContext = {
@@ -530,6 +566,7 @@ export class VoicePipelineService {
             messages,
             includeSystemPrompt: true,
             enableTools: false,
+            language: replyLanguage,
           }),
         trace,
       );
