@@ -133,6 +133,10 @@ Mid-call switches stay on the **same** `callId` / conversation engine. Clear det
 
 Consecutive same-language turns leave preference unchanged (`languageChanged: false`, no `LANGUAGE_CHANGED`). Unclear / unsupported detections do not switch. Hinglish is handled by the same engine — not a third agent.
 
+## Multilingual error & fallback (KAN-30)
+
+When detection is **unclear** (including empty STT / nonsense) or **unsupported** (out-of-scope language), the pipeline **skips the LLM** and returns a clarification or polite “English / Hindi / Hinglish only” reply in the session’s last language (default `en`). TTS still runs with that reply language. The session stays open (`languageChanged: false`). Fallback turns log `fallbackReason` and write a `TOOL_CALLED` call event with `metadata.kind = "language_fallback"` (no secrets). STT/LLM provider outages remain hard failures; TTS soft-fail is unchanged.
+
 ## Multilingual LLM replies (KAN-25)
 
 One `LlmService` / conversation engine for all languages. After detection (and optional session persist), the pipeline resolves reply language as:

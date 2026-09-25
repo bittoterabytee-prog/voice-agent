@@ -31,6 +31,11 @@ import {
 } from "../utils/pipelineLog";
 import { redactSecrets } from "../utils/redact";
 import {
+  fallbackReplyFor,
+  UNSUPPORTED_LANGUAGE_REPLY,
+  type FallbackReason,
+} from "./fallbackMessages";
+import {
   languageDetectionService,
   type LanguageDetectionResult,
   type LanguageDetectionService,
@@ -38,10 +43,7 @@ import {
 import { SttService } from "./sttService";
 import { TtsService } from "./ttsService";
 
-/** Spoken when the caller uses a language outside en / hi / hinglish (KAN-24). */
-export const UNSUPPORTED_LANGUAGE_REPLY =
-  "I'm sorry — I can only help in English, Hindi, or Hinglish. Please continue in one of those languages.";
-
+export { UNSUPPORTED_LANGUAGE_REPLY, UNCLEAR_SPEECH_REPLY } from "./fallbackMessages";
 export type VoiceTurnRequest = {
   audio: ArrayBuffer | Uint8Array;
   mimeType?: string;
@@ -185,7 +187,23 @@ export class VoicePipelineService {
       }
 
       if (!transcript) {
-        throw new ValidationError("Speech-to-text returned an empty transcript");
+        // KAN-30: empty STT soft-continues with clarification (session stays open).
+        const emptyDetection: LanguageDetectionResult = {
+          language: null,
+          confidence: 0,
+          unclear: true,
+          unsupported: false,
+        };
+        const response = await this.runLanguageFallbackTurn(
+          "",
+          emptyDetection,
+          "unclear",
+          request,
+          baseCtx,
+          trace,
+          costBreakdown,
+        );
+        return this.finalizeFallbackResponse(response, requestId, trace, costBreakdown, turnStarted, baseCtx, "unclear");
       }
 
       let languageDetection = this.detectLanguage(
@@ -204,35 +222,18 @@ export class VoicePipelineService {
         };
       }
 
-      if (languageDetection.unsupported) {
-        const response = await this.runUnsupportedLanguageTurn(
+      if (languageDetection.unsupported || languageDetection.unclear) {
+        const reason: FallbackReason = languageDetection.unsupported ? "unsupported" : "unclear";
+        const response = await this.runLanguageFallbackTurn(
           transcript,
           languageDetection,
+          reason,
           request,
           baseCtx,
           trace,
           costBreakdown,
         );
-        response.requestId = requestId;
-        response.pipeline = trace.toJSON();
-        response.cost = sumTurnCost(costBreakdown);
-        if (response.callId) {
-          await this.persistTurnUsage(response.callId, response.cost, requestId);
-          if (!response.language) {
-            response.language = await this.readSessionLanguage(response.callId);
-          }
-        }
-        logPipelineStage("info", "Voice pipeline turn success (unsupported language)", {
-          ...baseCtx,
-          callId: response.callId ?? baseCtx.callId,
-          conversationId: response.conversationId,
-          stage: "turn",
-          outcome: "success",
-          durationMs: Date.now() - turnStarted,
-          softFail: Boolean(response.ttsError),
-          estimatedUsd: response.cost.estimatedUsd,
-        });
-        return response;
+        return this.finalizeFallbackResponse(response, requestId, trace, costBreakdown, turnStarted, baseCtx, reason);
       }
 
       const callId = request.callId?.trim();
@@ -311,20 +312,85 @@ export class VoicePipelineService {
     }
   }
 
-  private async runUnsupportedLanguageTurn(
+  private async finalizeFallbackResponse(
+    response: VoiceTurnResponse,
+    requestId: string,
+    trace: ReturnType<typeof createPipelineTrace>,
+    costBreakdown: StageUsageEstimate[],
+    turnStarted: number,
+    baseCtx: PipelineLogContext,
+    reason: FallbackReason,
+  ): Promise<VoiceTurnResponse> {
+    response.requestId = requestId;
+    response.pipeline = trace.toJSON();
+    response.cost = sumTurnCost(costBreakdown);
+    if (response.callId) {
+      await this.persistTurnUsage(response.callId, response.cost, requestId);
+      if (!response.language) {
+        response.language = await this.readSessionLanguage(response.callId);
+      }
+    }
+    logPipelineStage("info", "Voice pipeline turn success (language fallback)", {
+      ...baseCtx,
+      callId: response.callId ?? baseCtx.callId,
+      conversationId: response.conversationId,
+      stage: "turn",
+      outcome: "success",
+      durationMs: Date.now() - turnStarted,
+      softFail: Boolean(response.ttsError),
+      estimatedUsd: response.cost.estimatedUsd,
+      fallbackReason: reason,
+    });
+    return response;
+  }
+
+  /**
+   * Soft-continue for unclear / unsupported speech (KAN-30). Skips LLM; TTS in session language.
+   */
+  private async runLanguageFallbackTurn(
     transcript: string,
     languageDetection: LanguageDetectionResult,
+    reason: FallbackReason,
     request: VoiceTurnRequest,
     baseCtx: PipelineLogContext,
     trace: ReturnType<typeof createPipelineTrace>,
     costBreakdown: StageUsageEstimate[],
   ): Promise<VoiceTurnResponse> {
-    const replyText = UNSUPPORTED_LANGUAGE_REPLY;
     const callId = request.callId?.trim();
+    const sessionLanguage = callId ? await this.readSessionLanguage(callId) : undefined;
+    const { language: replyLanguage, replyText } = fallbackReplyFor(reason, sessionLanguage);
+
+    logPipelineStage("info", "Voice pipeline language fallback", {
+      ...baseCtx,
+      callId,
+      stage: "language",
+      outcome: "success",
+      softFail: true,
+      fallbackReason: reason,
+      replyLanguage,
+    });
 
     if (callId) {
       try {
-        const utterance = await this.sessions.handleUserUtterance(callId, transcript);
+        await this.events.create({
+          callId,
+          eventType: "TOOL_CALLED",
+          metadata: {
+            kind: "language_fallback",
+            reason,
+            replyLanguage,
+            requestId: baseCtx.requestId,
+          },
+        });
+      } catch {
+        // Logging must not break the turn.
+      }
+
+      try {
+        const utterance = await this.sessions.handleUserUtterance(
+          callId,
+          transcript.length > 0 ? transcript : "(inaudible)",
+        );
         await this.sessions.appendTurn(callId, { role: "assistant", content: replyText });
         const response: VoiceTurnResponse = {
           transcript,
@@ -335,16 +401,28 @@ export class VoicePipelineService {
           currentState: utterance.currentState,
           action: utterance.action,
           languageDetection,
-          language: utterance.language,
+          language: utterance.language ?? sessionLanguage ?? replyLanguage,
+          languageChanged: false,
         };
-        return this.attachTts(response, replyText, request.voice, "en", baseCtx, trace, costBreakdown);
+        return this.attachTts(
+          response,
+          replyText,
+          request.voice,
+          replyLanguage,
+          baseCtx,
+          trace,
+          costBreakdown,
+        );
       } catch {
         // Fall through to in-memory path if session is unavailable.
       }
     }
 
     const conversation = this.resolveConversation(request);
-    this.conversation.appendTurn(conversation.id, { role: "user", content: transcript });
+    this.conversation.appendTurn(conversation.id, {
+      role: "user",
+      content: transcript.length > 0 ? transcript : "(inaudible)",
+    });
     this.conversation.appendTurn(conversation.id, { role: "assistant", content: replyText });
 
     const response: VoiceTurnResponse = {
@@ -353,12 +431,13 @@ export class VoicePipelineService {
       conversationId: conversation.id,
       sessionId: request.sessionId,
       languageDetection,
+      language: replyLanguage,
     };
     return this.attachTts(
       response,
       replyText,
       request.voice,
-      "en",
+      replyLanguage,
       { ...baseCtx, conversationId: conversation.id },
       trace,
       costBreakdown,
