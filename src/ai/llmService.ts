@@ -25,6 +25,11 @@ export type LlmCompletionRequest = {
   includeSystemPrompt?: boolean;
   /** Attach appointment tool definitions for model tool-calling (default false). */
   enableTools?: boolean;
+  /**
+   * Active reply language for the system prompt (en | hi | hinglish).
+   * Defaults to en when omitted or unsupported (KAN-25).
+   */
+  language?: string;
 };
 
 export type LlmTokenUsage = {
@@ -88,8 +93,9 @@ function parseToolArguments(raw: string | undefined): Record<string, unknown> {
 }
 
 /**
- * LLM conversation adapter (KAN-12).
+ * LLM conversation adapter (KAN-12 / KAN-25).
  * Uses getConfig().llm only — fail-closed, no invented appointment data.
+ * One engine for all languages; reply language is injected via the system prompt.
  */
 export class LlmService {
   private readonly apiKey?: string;
@@ -124,7 +130,7 @@ export class LlmService {
     const messages: LlmMessage[] = [];
 
     if (request.includeSystemPrompt !== false) {
-      messages.push(buildSystemMessage());
+      messages.push(buildSystemMessage({ language: request.language }));
     }
 
     if (request.messages?.length) {

@@ -7,6 +7,7 @@ type CompleteBody = {
   messages?: unknown;
   includeSystemPrompt?: unknown;
   enableTools?: unknown;
+  language?: unknown;
 };
 
 function parseMessages(value: unknown): LlmMessage[] | undefined {
@@ -45,6 +46,10 @@ export async function completeLlmTurn(
     const includeSystemPrompt =
       typeof body.includeSystemPrompt === "boolean" ? body.includeSystemPrompt : undefined;
     const enableTools = typeof body.enableTools === "boolean" ? body.enableTools : undefined;
+    if (body.language !== undefined && typeof body.language !== "string") {
+      throw new ValidationError("language must be a string");
+    }
+    const language = typeof body.language === "string" ? body.language : undefined;
 
     if (!prompt?.trim() && (!messages || messages.length === 0)) {
       throw new ValidationError("prompt or messages is required");
@@ -55,6 +60,7 @@ export async function completeLlmTurn(
       messages,
       includeSystemPrompt,
       enableTools,
+      language,
     });
     res.status(200).json(result);
   } catch (error) {

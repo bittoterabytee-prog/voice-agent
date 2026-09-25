@@ -122,6 +122,16 @@ When `callId` is present and detection returns a clear `en` | `hi` | `hinglish` 
 
 `POST /api/sessions` defaults `language` to `en` and rejects unsupported codes with `400`. `POST /api/voice/turn` responses expose top-level `language` (session preference) plus `languageDetection` (utterance classification). No appointment logic.
 
+## Multilingual LLM replies (KAN-25)
+
+One `LlmService` / conversation engine for all languages. After detection (and optional session persist), the pipeline resolves reply language as:
+
+1. Clear detection `en` | `hi` | `hinglish`, else
+2. Session `language`, else
+3. `en`
+
+That code is passed to `llm.complete({ language })`, which prepends a language-aware system prompt (`buildSystemMessage`). Prior turns remain in `messages` when the caller switches language. Hinglish is instructed as one mixed reply — not separate EN/HI agents. Voice turns keep `enableTools: false`.
+
 ## Logging & error handling (KAN-18)
 
 Each turn emits structured pino logs with `component: "voice_pipeline"`, `requestId`, optional `callId` / `conversationId`, `stage` (`stt` | `language` | `llm` | `tts` | `turn`), `outcome`, and `durationMs`. Language logs include `detectedLanguage`, `confidence`, `unclear`, and `unsupported` — not API keys.
