@@ -326,7 +326,7 @@ export class VoicePipelineService {
           languageDetection,
           language: utterance.language,
         };
-        return this.attachTts(response, replyText, request.voice, baseCtx, trace, costBreakdown);
+        return this.attachTts(response, replyText, request.voice, "en", baseCtx, trace, costBreakdown);
       } catch {
         // Fall through to in-memory path if session is unavailable.
       }
@@ -347,6 +347,7 @@ export class VoicePipelineService {
       response,
       replyText,
       request.voice,
+      "en",
       { ...baseCtx, conversationId: conversation.id },
       trace,
       costBreakdown,
@@ -529,7 +530,7 @@ export class VoicePipelineService {
       language: utterance.language,
     };
 
-    return this.attachTts(response, replyText, request.voice, ctx, trace, costBreakdown);
+    return this.attachTts(response, replyText, request.voice, replyLanguage, ctx, trace, costBreakdown);
   }
 
   private async runTurnInMemory(
@@ -599,13 +600,14 @@ export class VoicePipelineService {
       action: "continue",
     };
 
-    return this.attachTts(response, replyText, request.voice, ctx, trace, costBreakdown);
+    return this.attachTts(response, replyText, request.voice, replyLanguage, ctx, trace, costBreakdown);
   }
 
   private async attachTts(
     response: VoiceTurnResponse,
     replyText: string,
     voice: string | undefined,
+    language: string | undefined,
     ctx: PipelineLogContext,
     trace: ReturnType<typeof createPipelineTrace>,
     costBreakdown: StageUsageEstimate[],
@@ -615,7 +617,7 @@ export class VoicePipelineService {
     try {
       const { result: ttsResult } = await withStageTiming(
         { ...ctx, stage: "tts" },
-        () => this.tts.synthesize({ text: replyText, voice }),
+        () => this.tts.synthesize({ text: replyText, voice, language }),
         trace,
       );
       response.audioBase64 = Buffer.from(ttsResult.audio).toString("base64");

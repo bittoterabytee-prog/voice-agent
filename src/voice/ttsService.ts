@@ -1,9 +1,19 @@
 import { getConfig } from "../config";
 import { ExternalServiceError, ValidationError } from "../utils/errors";
+import {
+  isLanguageCode,
+  normalizeLanguageCode,
+  type LanguageCode,
+} from "./languageDetectionService";
 
 export type TtsSynthesizeRequest = {
   text: string;
   voice?: string;
+  /**
+   * Reply language (en | hi | hinglish). Selects a default OpenAI voice when
+   * `voice` is omitted (KAN-26). Explicit `voice` always wins.
+   */
+  language?: string;
 };
 
 export type TtsSynthesizeResponse = {
@@ -25,10 +35,40 @@ const OPENAI_SPEECH_URL = "https://api.openai.com/v1/audio/speech";
 const DEFAULT_OPENAI_VOICE = "alloy";
 const DEFAULT_OPENAI_MIME = "audio/mpeg";
 
+/** OpenAI TTS voices used per reply language (one stack — not separate agents). */
+export const TTS_VOICE_BY_LANGUAGE: Record<LanguageCode, string> = {
+  en: "alloy",
+  hi: "nova",
+  hinglish: "nova",
+};
+
+function toLanguageCode(language?: string | null): LanguageCode {
+  const normalized = normalizeLanguageCode(language ?? undefined);
+  if (normalized && isLanguageCode(normalized)) {
+    return normalized;
+  }
+  return "en";
+}
+
 /**
- * Browser-POC text-to-speech adapter (KAN-13).
+ * Resolve OpenAI TTS voice for a reply language.
+ * Explicit `voiceOverride` wins; otherwise map en→alloy, hi/hinglish→nova.
+ */
+export function resolveTtsVoice(
+  language?: string | null,
+  voiceOverride?: string | null,
+): string {
+  const override = voiceOverride?.trim();
+  if (override) {
+    return override;
+  }
+  return TTS_VOICE_BY_LANGUAGE[toLanguageCode(language)] ?? DEFAULT_OPENAI_VOICE;
+}
+
+/**
+ * Browser-POC text-to-speech adapter (KAN-13 / KAN-26).
  * Uses getConfig().tts only — no telephony providers.
- * Sprint 2: English synthesis; multilingual / adaptive voice profiles are later sprints.
+ * One TTS stack for en / hi / hinglish; language selects default voice when unset.
  */
 export class TtsService {
   private readonly apiKey?: string;
@@ -55,7 +95,7 @@ export class TtsService {
     }
 
     const model = this.model?.trim() || "tts-1";
-    const voice = request.voice?.trim() || DEFAULT_OPENAI_VOICE;
+    const voice = resolveTtsVoice(request.language, request.voice);
 
     if (this.provider.toLowerCase() !== "openai") {
       throw new ExternalServiceError(

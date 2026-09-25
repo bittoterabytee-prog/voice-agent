@@ -184,7 +184,7 @@ The Express app sends CORS headers for Origins listed in `getConfig().app.corsOr
 
 Preflight `OPTIONS` returns `204`. This unblocks the Vite UI on port **5174** calling `GET /health`, `POST /api/sessions`, and `POST /api/voice/turn`.
 
-Sprint 2 TTS is English-only with a single default voice (`alloy`). Multilingual voices and adaptive delivery profiles are later sprints.
+Sprint 3 TTS uses one OpenAI stack for en / hi / hinglish. Default voices: `alloy` (en), `nova` (hi / hinglish). Explicit request `voice` overrides the map. Adaptive delivery profiles remain a later sprint.
 
 ## STT API (KAN-11 / KAN-24 multilingual)
 
@@ -250,7 +250,19 @@ Optional `toolCalls` when the model requests a tool (with `enableTools: true`). 
 
 Supported provider today: `openai` (chat completions). Model defaults to `gpt-4o-mini` when `LLM_MODEL` is unset.
 
-## TTS API (KAN-13)
+## Multilingual TTS (KAN-26)
+
+After the LLM reply, `attachTts` calls `tts.synthesize({ text, voice?, language })` with the same reply language used for the LLM prompt. `resolveTtsVoice` maps:
+
+| Language | Default OpenAI voice |
+| -------- | -------------------- |
+| `en` | `alloy` |
+| `hi` | `nova` |
+| `hinglish` | `nova` |
+
+Unsupported-language fallback replies stay English (`alloy`). Soft-fail still returns `200` with `ttsError` and no audio. One TTS service — not separate language agents.
+
+## TTS API (KAN-13 / KAN-26)
 
 `POST /api/tts/synthesize`
 
@@ -259,11 +271,12 @@ Request:
 ```json
 {
   "text": "assistant reply to speak",
-  "voice": "alloy"
+  "voice": "alloy",
+  "language": "hi"
 }
 ```
 
-`voice` is optional (defaults to `alloy`).
+`voice` is optional. `language` (`en` | `hi` | `hinglish`) selects the default voice when `voice` is omitted.
 
 Response `200`:
 

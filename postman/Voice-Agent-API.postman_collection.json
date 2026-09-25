@@ -287,7 +287,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"text\": \"Your appointment is confirmed for tomorrow at 10 AM.\",\n  \"voice\": \"alloy\"\n}",
+              "raw": "{\n  \"text\": \"Your appointment is confirmed for tomorrow at 10 AM.\",\n  \"language\": \"en\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -295,7 +295,7 @@
               }
             },
             "url": "{{baseUrl}}/api/tts/synthesize",
-            "description": "Convert assistant reply text to playable audio (KAN-13).\n\n`voice` is optional (OpenAI default `alloy`)."
+            "description": "Convert assistant reply text to playable audio (KAN-13 / KAN-26).\n\nOptional `language` (en | hi | hinglish) selects default voice (alloy / nova). Explicit `voice` overrides."
           },
           "response": [
             {
