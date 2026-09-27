@@ -9,6 +9,11 @@ import {
   resolveDateTime,
   type ResolveDateTimeResult,
 } from "../services/dateTimeResolver";
+import {
+  checkAvailability,
+  type CheckAvailabilityInput,
+  type CheckAvailabilityResult,
+} from "../services/availabilityService";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -50,11 +55,20 @@ export function resolveDateTimeTool(
   return resolveDateTime(phrase, now);
 }
 
-export { identifyPatient, getPatient, searchDoctor, resolveDateTime };
+/** SRD checkAvailability (KAN-67) — working_hours minus SCHEDULED; never invent slots. */
+export async function checkAvailabilityTool(
+  input: CheckAvailabilityInput,
+): Promise<CheckAvailabilityResult> {
+  return checkAvailability(input);
+}
+
+export { identifyPatient, getPatient, searchDoctor, resolveDateTime, checkAvailability };
 export type {
   IdentifyPatientInput,
   IdentifyPatientResult,
   SearchDoctorInput,
   SearchDoctorResult,
   ResolveDateTimeResult,
+  CheckAvailabilityInput,
+  CheckAvailabilityResult,
 };

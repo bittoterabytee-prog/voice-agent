@@ -300,6 +300,7 @@ These behaviors exist at the repository/service layer and will be wrapped by HTT
 | Patient identify / register (`getPatient`) | `identifyPatient` / `getPatientTool` (KAN-64) — ask for phone (no ANI); multi-patient per phone; register when unknown + name |
 | Doctor search (`searchDoctor`) | `searchDoctor` / `searchDoctorTool` (KAN-65) — name/specialty/department/gender; found / multiple / not_found / unavailable |
 | Date/time resolution | `resolveDateTime` / `resolveDateTimeTool` (KAN-66) — IST windows; ambiguous phrases never invent a slot |
+| Availability (`checkAvailability`) | `checkAvailability` / `checkAvailabilityTool` (KAN-67) — working_hours − SCHEDULED; alternatives when empty |
 | Create/find appointment | `appointmentRepository` |
 | Patient / doctor CRUD | respective repositories |
 | Appointment tool for LLM | `lookupAppointment` in `appointmentTools.ts` (placeholder); HTTP wrappers in KAN-72 |
