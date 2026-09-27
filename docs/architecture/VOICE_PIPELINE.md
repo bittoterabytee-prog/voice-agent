@@ -15,7 +15,7 @@ Microphone (frontend repo)
         ├─ LanguageDetectionService (KAN-23: en | hi | hinglish)
         ├─ SessionService when callId set (KAN-15 durable state + context)
         ├─ ConversationService (in-memory turns; fallback without callId)
-        ├─ LlmService
+        ├─ LlmService + appointment tool loop (KAN-111: enableTools → execute appointmentTools → final reply)
         └─ TtsService (TTS failure still returns transcript + replyText)
    → playback audioBase64 in browser (or show text if ttsError)
 ```
@@ -147,7 +147,7 @@ One `LlmService` / conversation engine for all languages. After detection (and o
 2. Session `language`, else
 3. `en`
 
-That code is passed to `llm.complete({ language })`, which prepends a language-aware system prompt (`buildSystemMessage`). Prior turns remain in `messages` when the caller switches language. Hinglish is instructed as one mixed reply — not separate EN/HI agents. Voice turns keep `enableTools: false`.
+That code is passed into the appointment tool loop (`runAppointmentToolLoop`, KAN-111), which enables OpenAI tools, executes `appointmentTools` against PostgreSQL (with `callId` logging when present), and only then produces the spoken reply. Prior turns remain in `messages` when the caller switches language. Hinglish is instructed as one mixed reply — not separate EN/HI agents. Mutating tools require `confirmed: true`.
 
 ## Logging & error handling (KAN-18)
 

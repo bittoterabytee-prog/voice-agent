@@ -150,7 +150,9 @@ Uses `getConfig().tts` (`TTS_PROVIDER`, `TTS_API_KEY`, `TTS_MODEL`). Failures ar
 
 **Error & fallback (KAN-30):** Unclear speech (including empty STT) and unsupported languages skip the LLM and return a clarification / polite fallback in the session language (default `en`). The session is not ended. Fallback is logged (`fallbackReason` + `language_fallback` call event) without secrets. STT/LLM provider failures remain `502`; TTS soft-fail is unchanged.
 
-**Multilingual LLM (KAN-25):** The same `LlmService` receives `language` (clear detection → else session → else `en`) so the system prompt instructs the reply language. Prior conversation turns stay in `messages` across switches. `enableTools` remains false on the voice path (no appointment tool calling in Sprint 3).
+**Multilingual LLM (KAN-25):** The same `LlmService` receives `language` (clear detection → else session → else `en`) so the system prompt instructs the reply language. Prior conversation turns stay in `messages` across switches.
+
+**Appointment tool loop (KAN-111):** Voice turns run `runAppointmentToolLoop` — OpenAI tools are enabled, `toolCalls` are executed via `appointmentTools` (PostgreSQL), and the final spoken reply must match tool outcomes. Book/cancel/reschedule require `confirmed: true` or the tool returns `needs_confirmation` without writing.
 
 **Multilingual TTS (KAN-26):** The same `TtsService` receives that reply `language` so default OpenAI voice is `alloy` (en) or `nova` (hi / hinglish). Client `voice` override still wins. Soft-fail `ttsError` behavior is unchanged.
 

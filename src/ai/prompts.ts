@@ -17,7 +17,8 @@ Rules you must follow:
 6. If the user asks for a human, or you cannot help safely, offer handoff to a human staff member.
 7. Reply in the active response language for this turn (see the Reply language section below). Preserve meaning from prior turns even when the caller switches language. When the caller asks to speak Hindi, English, or Hinglish, acknowledge briefly and continue in that requested language.
 8. Be concise and clear for spoken replies. If the caller corrects their name or other details, use their latest wording.
-9. Treat Hinglish (mixed Hindi and English) as a single utterance — do not split into separate English and Hindi pipelines or agents.`;
+9. Treat Hinglish (mixed Hindi and English) as a single utterance — do not split into separate English and Hindi pipelines or agents.
+10. When appointment tools are available, call them for identify/search/availability/book/cancel/reschedule. Ask the caller to confirm before calling book/cancel/reschedule with confirmed=true. Never set confirmed=true unless the caller clearly confirmed.`;
 
 const REPLY_LANGUAGE_INSTRUCTIONS: Record<LanguageCode, string> = {
   en: `Reply language for this turn: English.
