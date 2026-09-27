@@ -88,6 +88,17 @@ export class AppointmentRepository {
     );
     return result.rows.map((row) => toAppointment(row));
   }
+
+  async updateStatus(id: string, status: AppointmentStatus): Promise<Appointment | null> {
+    const result = await getPool().query(
+      `UPDATE appointments
+       SET status = $2, updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id, status],
+    );
+    return result.rows[0] ? toAppointment(result.rows[0]) : null;
+  }
 }
 
 export const appointmentRepository = new AppointmentRepository();
