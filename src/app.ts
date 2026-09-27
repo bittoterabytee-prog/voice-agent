@@ -9,6 +9,7 @@ import { sttRouter } from "./routes/stt";
 import { ttsRouter } from "./routes/tts";
 import { voiceRouter } from "./routes/voice";
 import { usageRouter } from "./routes/usage";
+import { appointmentRouter } from "./routes/appointments";
 
 export function createApp() {
   loadConfig();
@@ -25,6 +26,7 @@ export function createApp() {
   app.use(llmRouter);
   app.use(ttsRouter);
   app.use(voiceRouter);
+  app.use(appointmentRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
 
