@@ -5,13 +5,13 @@
 | Name | File | Behavior |
 | ---- | ---- | -------- |
 | `identifyPatient` / `getPatient` / `getPatientTool` | `src/services/patientService.ts`, `src/tools/appointmentTools.ts` | POC: **ask for phone** (no call ANI). Outcomes `found` \| `multiple_matches` \| `needs_name` \| `registered`. One phone may have many patients; unknown phone + name registers (KAN-64) |
+| `searchDoctor` / `searchDoctorTool` | `src/services/doctorService.ts`, `src/tools/appointmentTools.ts` | Search by name / specialty / department / gender. Outcomes `found` \| `multiple_matches` \| `not_found` \| `unavailable`. Never invents doctors (KAN-65) |
 | `lookupAppointment` | `src/tools/appointmentTools.ts` | Returns placeholder `found: false` |
 
 ## Intended tools (to implement)
 
 | Tool | Must |
 | ---- | ---- |
-| `searchDoctor` | Query doctors by name/specialty/department; never invent |
 | `checkAvailability` | Query doctors + appointments; never invent slots |
 | `bookAppointment` | Persist only after confirmation + success |
 | `cancelAppointment` / `rescheduleAppointment` | Update status via repository |
