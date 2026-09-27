@@ -18,12 +18,12 @@
 
 | Tool | Must |
 | ---- | ---- |
-| _(none for Sprint 4 core tools)_ | HTTP exposure (KAN-72), tool call logging (KAN-73) |
+| _(HTTP exposure)_ | Appointment HTTP APIs + Postman (KAN-72) |
 
 ## Contract
 
 1. Tools are the only path to mutate or assert appointment data.
-2. Tool failures emit `TOOL_FAILED` call events when wired.
+2. Appointment tool wrappers emit `TOOL_CALLED` / `TOOL_FAILED` when `ctx.callId` is passed (KAN-73).
 3. LLM must surface tool errors honestly to the user.
 4. Patient identity for the browser POC: ask the user for **phone** first. Missing phone → `ValidationError`. Unknown phone without name → `needs_name` (ask for name, then register).
 
@@ -36,4 +36,11 @@
 
 ## Logging
 
-Successful tool use → `call_events.event_type = TOOL_CALLED` with safe metadata (no secrets).
+Appointment tools (`checkAvailability`, `bookAppointment`, `cancelAppointment`, `rescheduleAppointment`) accept optional `{ callId }` and write `call_events`:
+
+| Event | When |
+| ----- | ---- |
+| `TOOL_CALLED` | Tool completed with a non-`failed` outcome (includes `booked`, `available`, `needs_confirmation`, …) |
+| `TOOL_FAILED` | Outcome `failed`, or thrown validation/DB error before completion |
+
+Metadata shape (redacted): `{ kind: "appointment_tool", tool, outcome, appointmentId?, message? }`. No API keys, connection strings, or raw SQL.
