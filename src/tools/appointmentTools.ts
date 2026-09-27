@@ -5,6 +5,10 @@ import {
   type IdentifyPatientResult,
 } from "../services/patientService";
 import { searchDoctor, type SearchDoctorInput, type SearchDoctorResult } from "../services/doctorService";
+import {
+  resolveDateTime,
+  type ResolveDateTimeResult,
+} from "../services/dateTimeResolver";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -38,5 +42,19 @@ export async function searchDoctorTool(input: SearchDoctorInput): Promise<Search
   return searchDoctor(input);
 }
 
-export { identifyPatient, getPatient, searchDoctor };
-export type { IdentifyPatientInput, IdentifyPatientResult, SearchDoctorInput, SearchDoctorResult };
+/** SRD date/time understanding (KAN-66) — clarify when ambiguous; never invent a slot. */
+export function resolveDateTimeTool(
+  phrase: string,
+  now: Date = new Date(),
+): ResolveDateTimeResult {
+  return resolveDateTime(phrase, now);
+}
+
+export { identifyPatient, getPatient, searchDoctor, resolveDateTime };
+export type {
+  IdentifyPatientInput,
+  IdentifyPatientResult,
+  SearchDoctorInput,
+  SearchDoctorResult,
+  ResolveDateTimeResult,
+};
