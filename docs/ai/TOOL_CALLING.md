@@ -6,6 +6,7 @@
 | ---- | ---- | -------- |
 | `identifyPatient` / `getPatient` / `getPatientTool` | `src/services/patientService.ts`, `src/tools/appointmentTools.ts` | POC: **ask for phone** (no call ANI). Outcomes `found` \| `multiple_matches` \| `needs_name` \| `registered`. One phone may have many patients; unknown phone + name registers (KAN-64) |
 | `searchDoctor` / `searchDoctorTool` | `src/services/doctorService.ts`, `src/tools/appointmentTools.ts` | Search by name / specialty / department / gender. Outcomes `found` \| `multiple_matches` \| `not_found` \| `unavailable`. Never invents doctors (KAN-65) |
+| `resolveDateTime` / `resolveDateTimeTool` | `src/services/dateTimeResolver.ts`, `src/tools/appointmentTools.ts` | Resolve relative / part-of-day / calendar phrases in Asia/Kolkata. Outcomes `resolved` \| `ambiguous` (KAN-66) |
 | `lookupAppointment` | `src/tools/appointmentTools.ts` | Returns placeholder `found: false` |
 
 ## Intended tools (to implement)
