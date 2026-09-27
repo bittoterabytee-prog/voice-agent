@@ -8,6 +8,13 @@ import {
   type AppointmentToolExecution,
 } from "./appointmentToolRunner";
 import { APPOINTMENT_TOOL_DEFINITIONS } from "./llmTools";
+import {
+  failClosedReplyForToolFailure,
+  gateMutateToolArguments,
+  guardAppointmentReply,
+  latestUserUtterance,
+  shouldPreferFailClosedReply,
+} from "./appointmentSafety";
 
 export const DEFAULT_TOOL_LOOP_MAX_ROUNDS = 6;
 
@@ -82,8 +89,13 @@ export async function runAppointmentToolLoop(
       language: options.language,
       enableTools: false,
     });
+    const guarded = guardAppointmentReply({
+      replyText: completion.text.trim(),
+      toolExecutions,
+      language: options.language,
+    });
     return {
-      text: completion.text.trim(),
+      text: guarded.text,
       usage: completion.usage,
       toolRounds: 0,
       toolExecutions,
@@ -91,6 +103,7 @@ export async function runAppointmentToolLoop(
   }
 
   const maxRounds = options.maxRounds ?? DEFAULT_TOOL_LOOP_MAX_ROUNDS;
+  const userUtterance = latestUserUtterance(options.messages);
   const seed = options.llm.buildMessages({
     messages: options.messages,
     includeSystemPrompt: options.includeSystemPrompt !== false,
@@ -118,7 +131,16 @@ export async function runAppointmentToolLoop(
 
     const toolCalls = completion.toolCalls ?? [];
     if (toolCalls.length === 0) {
-      const text = completion.text.trim();
+      let text = completion.text.trim();
+      if (shouldPreferFailClosedReply(toolExecutions)) {
+        text = failClosedReplyForToolFailure(options.language);
+      } else {
+        text = guardAppointmentReply({
+          replyText: text,
+          toolExecutions,
+          language: options.language,
+        }).text;
+      }
       return {
         text,
         usage: usageTotal.totalTokens > 0 ? usageTotal : completion.usage,
@@ -134,15 +156,28 @@ export async function runAppointmentToolLoop(
     for (let i = 0; i < toolCalls.length; i += 1) {
       const call = toolCalls[i];
       const toolCallId = assistantMessage.tool_calls?.[i]?.id ?? `call_${i}_${call.name}`;
+      const gated = gateMutateToolArguments({
+        name: call.name,
+        arguments: call.arguments,
+        latestUserUtterance: userUtterance,
+      });
       const execution = await executeTool(
-        { name: call.name, arguments: call.arguments },
+        { name: call.name, arguments: gated.arguments },
         { callId: options.callId },
       );
       toolExecutions.push(execution);
       openAiMessages.push({
         role: "tool",
         tool_call_id: toolCallId,
-        content: JSON.stringify(execution.result),
+        content: JSON.stringify(
+          gated.confirmedForcedOff
+            ? {
+                toolResult: execution.result,
+                safetyGate:
+                  "confirmed was cleared because the latest user utterance was not an explicit confirmation",
+              }
+            : execution.result,
+        ),
       });
     }
   }
@@ -165,8 +200,19 @@ export async function runAppointmentToolLoop(
     };
   }
 
+  let text = final.text.trim();
+  if (shouldPreferFailClosedReply(toolExecutions)) {
+    text = failClosedReplyForToolFailure(options.language);
+  } else {
+    text = guardAppointmentReply({
+      replyText: text,
+      toolExecutions,
+      language: options.language,
+    }).text;
+  }
+
   return {
-    text: final.text.trim(),
+    text,
     usage: usageTotal.totalTokens > 0 ? usageTotal : final.usage,
     toolRounds,
     toolExecutions,

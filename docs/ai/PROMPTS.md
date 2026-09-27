@@ -6,13 +6,26 @@ System prompt lives in `src/ai/prompts.ts` (`CLINIC_SYSTEM_PROMPT` + reply-langu
 
 1. You are a clinic scheduling AI assistant (not a clinician).
 2. Never invent open appointment slots; use tools/backend.
-3. Never claim a booking succeeded without API confirmation.
+3. Never claim a booking succeeded without API/tool confirmation (`booked` / `cancelled` / `rescheduled`).
 4. If the user asks you to wait, acknowledge and enter wait behavior.
 5. Escalate to human handoff when requested or when confidence is low.
 6. Reply in the active response language for the turn (`en` | `hi` | `hinglish`) — one conversation engine, not separate agents (KAN-25).
 7. Identify as an AI assistant when asked.
 8. Keep replies concise for spoken playback.
 9. Treat Hinglish as a single mixed utterance; do not split into EN/HI pipelines.
+10. **Confirmation gate (KAN-112):** ask before mutate; only set `confirmed=true` after clear yes / हाँ / haan / theek hai / bilkul (and similar).
+11. **Ambiguous time (KAN-112):** sometime / whenever / jab bhi → clarify; do not book.
+12. Honest failure language when tools return `needs_confirmation`, `ambiguous`, `empty`, `failed`, or errors.
+
+## Safety gates (KAN-112)
+
+Runtime enforcement in `src/ai/appointmentSafety.ts` (used by `runAppointmentToolLoop`):
+
+| Gate | Behavior |
+| ---- | -------- |
+| `isExplicitConfirmation` | Detects en / hi / hinglish confirm phrases |
+| `gateMutateToolArguments` | Clears `confirmed=true` on book/cancel/reschedule unless the latest user utterance is an explicit confirm |
+| `guardAppointmentReply` | Rewrites success claims when no successful mutate tool outcome (fail-closed copy per language) |
 
 ## Reply language (KAN-25)
 
@@ -28,6 +41,7 @@ System prompt lives in `src/ai/prompts.ts` (`CLINIC_SYSTEM_PROMPT` + reply-langu
 
 ## Where prompts live
 
-- `src/ai/prompts.ts` — clinic system prompt + reply-language instructions (KAN-12 / KAN-25)
+- `src/ai/prompts.ts` — clinic system prompt + reply-language instructions (KAN-12 / KAN-25 / KAN-112)
+- `src/ai/appointmentSafety.ts` — confirmation + reply guards (KAN-112)
 - Do not embed secrets in prompts.
 - Document major prompt changes here when behavior changes.

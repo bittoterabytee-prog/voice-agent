@@ -38,6 +38,7 @@
 2. `executeAppointmentToolCall` runs the matching `appointmentTools` entry (with optional `callId`).
 3. Tool JSON is fed back as OpenAI `tool` messages until a final text reply (max 6 rounds).
 4. Mutating tools only persist when `confirmed: true`.
+5. **KAN-112 safety:** `gateMutateToolArguments` clears `confirmed=true` unless the latest user utterance is an explicit multilingual confirm; `guardAppointmentReply` fail-closes invented success claims.
 
 Never treat a model tool suggestion alone as a confirmed booking — only tool/DB outcomes.
 
