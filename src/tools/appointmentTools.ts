@@ -35,6 +35,10 @@ import {
   type RescheduleAppointmentInput,
   type RescheduleAppointmentResult,
 } from "../services/rescheduleService";
+import {
+  runLoggedAppointmentTool,
+  type AppointmentToolContext,
+} from "../services/appointmentToolLogger";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -77,11 +81,14 @@ export function resolveDateTimeTool(
   return resolveDateTime(phrase, now);
 }
 
-/** SRD checkAvailability (KAN-67) — working_hours minus SCHEDULED; never invent slots. */
+/** SRD checkAvailability (KAN-67) — logs TOOL_CALLED when ctx.callId set (KAN-73). */
 export async function checkAvailabilityTool(
   input: CheckAvailabilityInput,
+  ctx?: AppointmentToolContext,
 ): Promise<CheckAvailabilityResult> {
-  return checkAvailability(input);
+  return runLoggedAppointmentTool({ tool: "checkAvailability", callId: ctx?.callId }, () =>
+    checkAvailability(input),
+  );
 }
 
 /** SRD getAppointment (KAN-68) — read-only lookup; never changes status. */
@@ -91,25 +98,34 @@ export async function getAppointmentTool(
   return getAppointment(input);
 }
 
-/** SRD bookAppointment (KAN-69) — persist only when confirmed=true and slot is open. */
+/** SRD bookAppointment (KAN-69) — logs success/failure call_events when ctx.callId set (KAN-73). */
 export async function bookAppointmentTool(
   input: BookAppointmentInput,
+  ctx?: AppointmentToolContext,
 ): Promise<BookAppointmentResult> {
-  return bookAppointment(input);
+  return runLoggedAppointmentTool({ tool: "bookAppointment", callId: ctx?.callId }, () =>
+    bookAppointment(input),
+  );
 }
 
-/** SRD cancelAppointment (KAN-70) — single row + identity + policy + confirmation. */
+/** SRD cancelAppointment (KAN-70) — logs success/failure call_events when ctx.callId set (KAN-73). */
 export async function cancelAppointmentTool(
   input: CancelAppointmentInput,
+  ctx?: AppointmentToolContext,
 ): Promise<CancelAppointmentResult> {
-  return cancelAppointment(input);
+  return runLoggedAppointmentTool({ tool: "cancelAppointment", callId: ctx?.callId }, () =>
+    cancelAppointment(input),
+  );
 }
 
-/** SRD rescheduleAppointment (KAN-71) — same row; new slot from checkAvailability + confirmation. */
+/** SRD rescheduleAppointment (KAN-71) — logs success/failure call_events when ctx.callId set (KAN-73). */
 export async function rescheduleAppointmentTool(
   input: RescheduleAppointmentInput,
+  ctx?: AppointmentToolContext,
 ): Promise<RescheduleAppointmentResult> {
-  return rescheduleAppointment(input);
+  return runLoggedAppointmentTool({ tool: "rescheduleAppointment", callId: ctx?.callId }, () =>
+    rescheduleAppointment(input),
+  );
 }
 
 export {
@@ -123,6 +139,7 @@ export {
   sendConfirmation,
   cancelAppointment,
   rescheduleAppointment,
+  runLoggedAppointmentTool,
 };
 export type {
   IdentifyPatientInput,
@@ -140,4 +157,5 @@ export type {
   CancelAppointmentResult,
   RescheduleAppointmentInput,
   RescheduleAppointmentResult,
+  AppointmentToolContext,
 };

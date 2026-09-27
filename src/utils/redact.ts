@@ -2,6 +2,7 @@ const SECRET_PATTERNS: RegExp[] = [
   /\bsk-[a-zA-Z0-9_-]{8,}\b/g,
   /\bBearer\s+[a-zA-Z0-9._\-+=/]{8,}\b/gi,
   /\b(?:api[_-]?key|access[_-]?token|secret|password)\s*[:=]\s*['"]?([^\s'"]+)/gi,
+  /\b(?:postgres|postgresql|mysql|mongodb):\/\/[^\s'"]+/gi,
 ];
 
 /** Redact API keys and credential-like substrings from a string. */
