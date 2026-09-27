@@ -25,9 +25,15 @@ export class PatientRepository {
     return result.rows[0] ? toPatient(result.rows[0]) : null;
   }
 
-  async findByPhone(phone: string): Promise<Patient | null> {
-    const result = await getPool().query("SELECT * FROM patients WHERE phone = $1", [phone]);
-    return result.rows[0] ? toPatient(result.rows[0]) : null;
+  /** All patients sharing this phone (multi-patient household supported). */
+  async findAllByPhone(phone: string): Promise<Patient[]> {
+    const result = await getPool().query(
+      `SELECT * FROM patients
+       WHERE phone = $1
+       ORDER BY created_at ASC, id ASC`,
+      [phone],
+    );
+    return result.rows.map((row) => toPatient(row));
   }
 
   /** Case-insensitive exact name match (multiple rows possible). */

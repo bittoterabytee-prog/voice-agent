@@ -4,7 +4,7 @@
 
 | Name | File | Behavior |
 | ---- | ---- | -------- |
-| `getPatient` / `getPatientTool` | `src/services/patientService.ts`, `src/tools/appointmentTools.ts` | Lookup by phone and/or name; outcomes `found` \| `not_found` \| `multiple_matches`; never inserts (KAN-64) |
+| `identifyPatient` / `getPatient` / `getPatientTool` | `src/services/patientService.ts`, `src/tools/appointmentTools.ts` | POC: **ask for phone** (no call ANI). Outcomes `found` \| `multiple_matches` \| `needs_name` \| `registered`. One phone may have many patients; unknown phone + name registers (KAN-64) |
 | `lookupAppointment` | `src/tools/appointmentTools.ts` | Returns placeholder `found: false` |
 
 ## Intended tools (to implement)
@@ -22,7 +22,7 @@
 1. Tools are the only path to mutate or assert appointment data.
 2. Tool failures emit `TOOL_FAILED` call events when wired.
 3. LLM must surface tool errors honestly to the user.
-4. `getPatient` reads PostgreSQL `patients` only; missing phone+name → `ValidationError`.
+4. Patient identity for the browser POC: ask the user for **phone** first. Missing phone → `ValidationError`. Unknown phone without name → `needs_name` (ask for name, then register).
 
 ## LLM tool-calling prep (KAN-12)
 

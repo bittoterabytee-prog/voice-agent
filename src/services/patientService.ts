@@ -2,14 +2,15 @@ import { patientRepository } from "../repositories/patientRepository";
 import type { Patient } from "../models/patient";
 import { ValidationError } from "../utils/errors";
 
-export type GetPatientInput = {
+export type IdentifyPatientInput = {
+  /** Required for POC — no real call ANI; agent must ask the user. */
   phone?: string | null;
+  /** Used to disambiguate multiple patients on one phone, or to register a new patient. */
   name?: string | null;
+  preferredLanguage?: string | null;
 };
 
-export type GetPatientOutcome = "found" | "not_found" | "multiple_matches";
-
-export type GetPatientResult =
+export type IdentifyPatientResult =
   | {
       outcome: "found";
       patient: Patient;
@@ -17,14 +18,20 @@ export type GetPatientResult =
       message: string;
     }
   | {
-      outcome: "not_found";
+      outcome: "multiple_matches";
+      patient: null;
+      patients: Patient[];
+      message: string;
+    }
+  | {
+      outcome: "needs_name";
       patient: null;
       patients: [];
       message: string;
     }
   | {
-      outcome: "multiple_matches";
-      patient: null;
+      outcome: "registered";
+      patient: Patient;
       patients: Patient[];
       message: string;
     };
@@ -38,68 +45,94 @@ function normalizeName(name: string): string {
 }
 
 /**
- * Look up a patient by phone and/or name (KAN-64 / SRD getPatient).
- * Never creates rows. Distinct outcomes for not found vs multiple matches.
+ * POC patient identity (KAN-64): ask for phone (no telephony ANI).
+ * One phone may have many patients. Unknown phone + name → register.
  */
-export async function getPatient(input: GetPatientInput): Promise<GetPatientResult> {
+export async function identifyPatient(
+  input: IdentifyPatientInput,
+): Promise<IdentifyPatientResult> {
   const phone = input.phone?.trim() ? normalizePhone(input.phone) : "";
   const name = input.name?.trim() ? normalizeName(input.name) : "";
+  const preferredLanguage = input.preferredLanguage?.trim() || "en";
 
-  if (!phone && !name) {
-    throw new ValidationError("Provide phone and/or name to look up a patient");
+  if (!phone) {
+    throw new ValidationError("Ask the user for their phone number (POC has no caller-ID)");
   }
 
-  if (phone) {
-    const byPhone = await patientRepository.findByPhone(phone);
-    if (byPhone) {
-      if (name && byPhone.name.toLowerCase() !== name.toLowerCase()) {
-        return {
-          outcome: "not_found",
-          patient: null,
-          patients: [],
-          message: "No patient matched both the given phone and name",
-        };
-      }
+  const onPhone = await patientRepository.findAllByPhone(phone);
+
+  if (onPhone.length === 0) {
+    if (!name) {
+      return {
+        outcome: "needs_name",
+        patient: null,
+        patients: [],
+        message: "No patient on that phone yet; ask for the patient name to register",
+      };
+    }
+    const created = await patientRepository.create({
+      name,
+      phone,
+      preferredLanguage,
+    });
+    return {
+      outcome: "registered",
+      patient: created,
+      patients: [created],
+      message: "Registered new patient for that phone",
+    };
+  }
+
+  if (name) {
+    const matched = onPhone.filter((p) => p.name.toLowerCase() === name.toLowerCase());
+    if (matched.length === 1) {
       return {
         outcome: "found",
-        patient: byPhone,
-        patients: [byPhone],
+        patient: matched[0],
+        patients: matched,
         message: "Patient found",
       };
     }
-    if (!name) {
+    if (matched.length > 1) {
       return {
-        outcome: "not_found",
+        outcome: "multiple_matches",
         patient: null,
-        patients: [],
-        message: "No patient found for that phone",
+        patients: matched,
+        message: "Multiple patients on that phone share this name; ask for another detail",
       };
     }
-  }
-
-  const byName = await patientRepository.findByNameExact(name);
-  if (byName.length === 0) {
+    // Name not on this phone yet → register another patient on the same number
+    const created = await patientRepository.create({
+      name,
+      phone,
+      preferredLanguage,
+    });
     return {
-      outcome: "not_found",
-      patient: null,
-      patients: [],
-      message: phone
-        ? "No patient found for that phone or name"
-        : "No patient found for that name",
+      outcome: "registered",
+      patient: created,
+      patients: [...onPhone, created],
+      message: "Registered another patient on this phone",
     };
   }
-  if (byName.length === 1) {
+
+  if (onPhone.length === 1) {
     return {
       outcome: "found",
-      patient: byName[0],
-      patients: byName,
+      patient: onPhone[0],
+      patients: onPhone,
       message: "Patient found",
     };
   }
+
   return {
     outcome: "multiple_matches",
     patient: null,
-    patients: byName,
-    message: "Multiple patients matched that name; ask the caller to clarify (e.g. phone)",
+    patients: onPhone,
+    message: "Multiple patients share this phone; ask which patient name to use",
   };
+}
+
+/** @deprecated Prefer identifyPatient — kept as alias for tool naming (getPatient). */
+export async function getPatient(input: IdentifyPatientInput): Promise<IdentifyPatientResult> {
+  return identifyPatient(input);
 }

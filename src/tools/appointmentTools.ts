@@ -1,4 +1,9 @@
-import { getPatient, type GetPatientInput, type GetPatientResult } from "../services/patientService";
+import {
+  getPatient,
+  identifyPatient,
+  type IdentifyPatientInput,
+  type IdentifyPatientResult,
+} from "../services/patientService";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -19,9 +24,13 @@ export async function lookupAppointment(
   };
 }
 
-/** SRD tool: getPatient() — phone and/or name; never invents or inserts patients (KAN-64). */
-export async function getPatientTool(input: GetPatientInput): Promise<GetPatientResult> {
-  return getPatient(input);
+/**
+ * SRD getPatient for browser POC (KAN-64): ask for phone (no ANI).
+ * Multi-patient per phone; register when phone unknown (and name provided).
+ */
+export async function getPatientTool(input: IdentifyPatientInput): Promise<IdentifyPatientResult> {
+  return identifyPatient(input);
 }
 
-export type { GetPatientInput, GetPatientResult };
+export { identifyPatient, getPatient };
+export type { IdentifyPatientInput, IdentifyPatientResult };
