@@ -42,6 +42,18 @@ export class AppointmentRepository {
     const result = await getPool().query("SELECT * FROM appointments WHERE id = $1", [id]);
     return result.rows[0] ? toAppointment(result.rows[0]) : null;
   }
+
+  async listScheduledByDoctorDate(doctorId: string, appointmentDate: string): Promise<Appointment[]> {
+    const result = await getPool().query(
+      `SELECT * FROM appointments
+       WHERE doctor_id = $1
+         AND appointment_date = $2::date
+         AND status = 'SCHEDULED'
+       ORDER BY appointment_time ASC`,
+      [doctorId, appointmentDate],
+    );
+    return result.rows.map((row) => toAppointment(row));
+  }
 }
 
 export const appointmentRepository = new AppointmentRepository();
