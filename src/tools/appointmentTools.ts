@@ -14,6 +14,11 @@ import {
   type CheckAvailabilityInput,
   type CheckAvailabilityResult,
 } from "../services/availabilityService";
+import {
+  getAppointment,
+  type GetAppointmentInput,
+  type GetAppointmentResult,
+} from "../services/appointmentLookupService";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -25,6 +30,7 @@ export type AppointmentLookupResult = {
   message: string;
 };
 
+/** @deprecated Prefer getAppointmentTool (KAN-68). */
 export async function lookupAppointment(
   input: AppointmentLookupInput,
 ): Promise<AppointmentLookupResult> {
@@ -62,7 +68,21 @@ export async function checkAvailabilityTool(
   return checkAvailability(input);
 }
 
-export { identifyPatient, getPatient, searchDoctor, resolveDateTime, checkAvailability };
+/** SRD getAppointment (KAN-68) — read-only lookup; never changes status. */
+export async function getAppointmentTool(
+  input: GetAppointmentInput,
+): Promise<GetAppointmentResult> {
+  return getAppointment(input);
+}
+
+export {
+  identifyPatient,
+  getPatient,
+  searchDoctor,
+  resolveDateTime,
+  checkAvailability,
+  getAppointment,
+};
 export type {
   IdentifyPatientInput,
   IdentifyPatientResult,
@@ -71,4 +91,6 @@ export type {
   ResolveDateTimeResult,
   CheckAvailabilityInput,
   CheckAvailabilityResult,
+  GetAppointmentInput,
+  GetAppointmentResult,
 };

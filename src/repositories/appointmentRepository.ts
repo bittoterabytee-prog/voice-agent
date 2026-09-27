@@ -54,6 +54,40 @@ export class AppointmentRepository {
     );
     return result.rows.map((row) => toAppointment(row));
   }
+
+  /**
+   * Lookup by patient (+ optional doctor/date/status). Read-only; no status mutation (KAN-68).
+   */
+  async listByCriteria(input: {
+    patientId: string;
+    doctorId?: string;
+    appointmentDate?: string;
+    statuses?: AppointmentStatus[];
+  }): Promise<Appointment[]> {
+    const clauses = ["patient_id = $1"];
+    const params: unknown[] = [input.patientId];
+
+    if (input.doctorId) {
+      params.push(input.doctorId);
+      clauses.push(`doctor_id = $${params.length}`);
+    }
+    if (input.appointmentDate) {
+      params.push(input.appointmentDate);
+      clauses.push(`appointment_date = $${params.length}::date`);
+    }
+    if (input.statuses && input.statuses.length > 0) {
+      params.push(input.statuses);
+      clauses.push(`status = ANY($${params.length}::appointment_status[])`);
+    }
+
+    const result = await getPool().query(
+      `SELECT * FROM appointments
+       WHERE ${clauses.join(" AND ")}
+       ORDER BY appointment_date ASC, appointment_time ASC`,
+      params,
+    );
+    return result.rows.map((row) => toAppointment(row));
+  }
 }
 
 export const appointmentRepository = new AppointmentRepository();
