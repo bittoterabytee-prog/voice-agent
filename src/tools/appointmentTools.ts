@@ -25,6 +25,11 @@ import {
   type BookAppointmentInput,
   type BookAppointmentResult,
 } from "../services/bookingService";
+import {
+  cancelAppointment,
+  type CancelAppointmentInput,
+  type CancelAppointmentResult,
+} from "../services/cancelService";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -88,6 +93,13 @@ export async function bookAppointmentTool(
   return bookAppointment(input);
 }
 
+/** SRD cancelAppointment (KAN-70) — single row + identity + policy + confirmation. */
+export async function cancelAppointmentTool(
+  input: CancelAppointmentInput,
+): Promise<CancelAppointmentResult> {
+  return cancelAppointment(input);
+}
+
 export {
   identifyPatient,
   getPatient,
@@ -97,6 +109,7 @@ export {
   getAppointment,
   bookAppointment,
   sendConfirmation,
+  cancelAppointment,
 };
 export type {
   IdentifyPatientInput,
@@ -110,4 +123,6 @@ export type {
   GetAppointmentResult,
   BookAppointmentInput,
   BookAppointmentResult,
+  CancelAppointmentInput,
+  CancelAppointmentResult,
 };
