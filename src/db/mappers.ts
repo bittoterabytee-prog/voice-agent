@@ -19,6 +19,9 @@ type DoctorRow = {
   id: string;
   name: string;
   specialization: string;
+  department: string;
+  gender: string | null;
+  availability_status: Doctor["availabilityStatus"];
   working_hours: WorkingHours;
   created_at: Date;
   updated_at: Date;
@@ -79,6 +82,9 @@ export function toDoctor(row: DoctorRow): Doctor {
     id: row.id,
     name: row.name,
     specialization: row.specialization,
+    department: row.department,
+    gender: row.gender,
+    availabilityStatus: row.availability_status,
     workingHours: row.working_hours,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

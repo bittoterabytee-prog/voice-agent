@@ -47,6 +47,8 @@ describe("environment configuration (KAN-8)", () => {
     expect(config.app.corsOrigins).toEqual([
       "http://localhost:5173",
       "http://localhost:5174",
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:5174",
     ]);
     expect(config.database.url).toContain("localhost");
     expect(config.llm.provider).toBe("openai");

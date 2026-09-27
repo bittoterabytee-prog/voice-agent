@@ -150,16 +150,38 @@ Quick path: `npm run deps:up && npm run db:migrate && npm run dev` (API `:3000`)
 
 PostgreSQL is the source of truth for patients, doctors, appointments, calls, conversation state, and call events.
 
+Schema detail: [`docs/database/DATABASE_SCHEMA.md`](docs/database/DATABASE_SCHEMA.md).
+
 | Entity                | Notes                                                                                 |
 | --------------------- | ------------------------------------------------------------------------------------- |
-| `patients`            | Unique phone number                                                                   |
-| `doctors`             | `working_hours` stored as JSON                                                        |
-| `appointments`        | FK to patient and doctor; status `SCHEDULED`, `CANCELLED`, `COMPLETED`, `RESCHEDULED` |
+| `patients`            | Unique phone number; name indexed for lookup                                          |
+| `doctors`             | `working_hours` JSONB; `department`, optional `gender`, `availability_status`         |
+| `appointments`        | FK to patient and doctor; status `SCHEDULED`, `CANCELLED`, `COMPLETED`, `RESCHEDULED`; one SCHEDULED row per doctor slot |
 | `calls`               | Status `ACTIVE`, `COMPLETED`, `FAILED`, `TRANSFERRED`                                 |
 | `conversation_states` | One row per call; updated as the dialog moves                                         |
 | `call_events`         | Append-only event log with JSON metadata                                              |
 
 Invalid foreign keys are rejected by PostgreSQL and mapped to `INVALID_RELATIONSHIP`.
+
+### Local migrate + seed (KAN-104)
+
+```bash
+npm run db:up
+npm run db:migrate
+npm run db:seed
+```
+
+Seed loads **demo-only** data (phones `+1555…`, emails `@example.com`) modeled on **Saket Hospital, Jaipur** ([sakethospital.in](https://www.sakethospital.in/)):
+
+| Fixture | Purpose |
+| ------- | ------- |
+| 3 Indian patients (Asha Patel, Ravi Kumar, Meera Sharma) | Phone / name lookup demos |
+| **50** doctors | All medical consultants from [Our Doctors](https://www.sakethospital.in/our-doctors/) (~30) plus fillers across Specialities (Dermatology, Ophthalmology, Gastro, etc.) |
+| Weekday / Cardiology OPD `working_hours` | Real availability windows |
+| Cardiology day `2026-10-06` fully booked (Dr. Hariram Maharia) | Empty-availability tests |
+| Orthopedics scheduled / cancelled (Dr. Rohit Yogendra Goyal) | Book / cancel / reschedule demos |
+
+Re-run is **idempotent** (skips when marker patient `+15550001001` exists). To reload: `npm run db:seed -- --reset` or `SEED_RESET=1 npm run db:seed` (truncates appointment-related tables — local/demo only).
 
 ## Scripts
 
@@ -175,7 +197,8 @@ Invalid foreign keys are rejected by PostgreSQL and mapped to `INVALID_RELATIONS
 | `npm run vector:up`  | Start local Qdrant           |
 | `npm run deps:up`    | Start PostgreSQL and Qdrant  |
 | `npm run db:migrate` | Apply SQL migrations         |
-| `npm run db:seed`    | Load sample development data |
+| `npm run db:seed`    | Load sample development data (idempotent) |
+| `npm run db:seed -- --reset` | Truncate + reload sample data (local/demo) |
 
 Database integration tests always run. They use `DATABASE_URL` when PostgreSQL is reachable, otherwise they start a local Postgres-compatible test database.
 
