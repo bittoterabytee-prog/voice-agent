@@ -4,22 +4,25 @@
 
 | Name | File | Behavior |
 | ---- | ---- | -------- |
+| `identifyPatient` / `getPatient` / `getPatientTool` | `src/services/patientService.ts`, `src/tools/appointmentTools.ts` | POC: **ask for phone** (no call ANI). Outcomes `found` \| `multiple_matches` \| `needs_name` \| `registered`. One phone may have many patients; unknown phone + name registers (KAN-64) |
 | `lookupAppointment` | `src/tools/appointmentTools.ts` | Returns placeholder `found: false` |
 
 ## Intended tools (to implement)
 
 | Tool | Must |
 | ---- | ---- |
-| check_availability | Query doctors + appointments; never invent slots |
-| book_appointment | Persist only on success; return confirmation id |
-| cancel_or_reschedule | Update status via repository |
-| lookup_patient | By phone / name via `patientRepository` |
+| `searchDoctor` | Query doctors by name/specialty/department; never invent |
+| `checkAvailability` | Query doctors + appointments; never invent slots |
+| `bookAppointment` | Persist only after confirmation + success |
+| `cancelAppointment` / `rescheduleAppointment` | Update status via repository |
+| `getAppointment` | Fetch existing appointment(s) |
 
 ## Contract
 
 1. Tools are the only path to mutate or assert appointment data.
 2. Tool failures emit `TOOL_FAILED` call events when wired.
 3. LLM must surface tool errors honestly to the user.
+4. Patient identity for the browser POC: ask the user for **phone** first. Missing phone → `ValidationError`. Unknown phone without name → `needs_name` (ask for name, then register).
 
 ## LLM tool-calling prep (KAN-12)
 

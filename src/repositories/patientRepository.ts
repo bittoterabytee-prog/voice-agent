@@ -24,6 +24,28 @@ export class PatientRepository {
     const result = await getPool().query("SELECT * FROM patients WHERE id = $1", [id]);
     return result.rows[0] ? toPatient(result.rows[0]) : null;
   }
+
+  /** All patients sharing this phone (multi-patient household supported). */
+  async findAllByPhone(phone: string): Promise<Patient[]> {
+    const result = await getPool().query(
+      `SELECT * FROM patients
+       WHERE phone = $1
+       ORDER BY created_at ASC, id ASC`,
+      [phone],
+    );
+    return result.rows.map((row) => toPatient(row));
+  }
+
+  /** Case-insensitive exact name match (multiple rows possible). */
+  async findByNameExact(name: string): Promise<Patient[]> {
+    const result = await getPool().query(
+      `SELECT * FROM patients
+       WHERE lower(name) = lower($1)
+       ORDER BY created_at ASC, id ASC`,
+      [name],
+    );
+    return result.rows.map((row) => toPatient(row));
+  }
 }
 
 export const patientRepository = new PatientRepository();

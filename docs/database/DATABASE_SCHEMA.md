@@ -3,7 +3,7 @@
 Source of truth: `migrations/*.sql` (applied in filename order by `npm run db:migrate`).
 
 - `001_init.sql` — core POC tables
-- `002_appointment_sprint4_gaps.sql` — Sprint 4 / [KAN-104](https://voiceagentai.atlassian.net/browse/KAN-104) appointment-tool readiness
+- `003_patients_phone_not_unique.sql` — KAN-64: drop unique phone so one number can have multiple patients
 
 ## Enums
 
@@ -22,10 +22,10 @@ Source of truth: `migrations/*.sql` (applied in filename order by `npm run db:mi
 | Column | Notes |
 | ------ | ----- |
 | id | UUID PK |
-| name, phone, email | phone UNIQUE |
+| name, phone, email | phone **not unique** (KAN-64: multiple patients per phone; POC asks for number) |
 | preferred_language | default `en` |
 
-Indexes: `phone`, `name` (lookup for `getPatient`).
+Indexes: `phone`, `name` (lookup for `getPatient` / `identifyPatient`).
 
 ### `doctors`
 
