@@ -19,6 +19,12 @@ import {
   type GetAppointmentInput,
   type GetAppointmentResult,
 } from "../services/appointmentLookupService";
+import {
+  bookAppointment,
+  sendConfirmation,
+  type BookAppointmentInput,
+  type BookAppointmentResult,
+} from "../services/bookingService";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -75,6 +81,13 @@ export async function getAppointmentTool(
   return getAppointment(input);
 }
 
+/** SRD bookAppointment (KAN-69) — persist only when confirmed=true and slot is open. */
+export async function bookAppointmentTool(
+  input: BookAppointmentInput,
+): Promise<BookAppointmentResult> {
+  return bookAppointment(input);
+}
+
 export {
   identifyPatient,
   getPatient,
@@ -82,6 +95,8 @@ export {
   resolveDateTime,
   checkAvailability,
   getAppointment,
+  bookAppointment,
+  sendConfirmation,
 };
 export type {
   IdentifyPatientInput,
@@ -93,4 +108,6 @@ export type {
   CheckAvailabilityResult,
   GetAppointmentInput,
   GetAppointmentResult,
+  BookAppointmentInput,
+  BookAppointmentResult,
 };
