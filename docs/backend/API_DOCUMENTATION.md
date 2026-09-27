@@ -297,9 +297,10 @@ These behaviors exist at the repository/service layer and will be wrapped by HTT
 
 | Capability | Backend entry |
 | ---------- | ------------- |
+| Patient lookup (`getPatient`) | `patientService.getPatient` / `getPatientTool` (KAN-64) — phone and/or name; outcomes found / not_found / multiple_matches |
 | Create/find appointment | `appointmentRepository` |
 | Patient / doctor CRUD | respective repositories |
-| Appointment tool for LLM | `lookupAppointment` in `appointmentTools.ts` |
+| Appointment tool for LLM | `lookupAppointment` in `appointmentTools.ts` (placeholder); HTTP wrappers in KAN-72 |
 
 ## Error shape
 
