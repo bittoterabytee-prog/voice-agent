@@ -9,13 +9,13 @@
 | `resolveDateTime` / `resolveDateTimeTool` | `src/services/dateTimeResolver.ts`, `src/tools/appointmentTools.ts` | Resolve relative / part-of-day / calendar phrases in Asia/Kolkata. Outcomes `resolved` \| `ambiguous` (KAN-66) |
 | `checkAvailability` / `checkAvailabilityTool` | `src/services/availabilityService.ts`, `src/tools/appointmentTools.ts` | Real slots from `working_hours` minus SCHEDULED; alternatives when empty; never invent (KAN-67) |
 | `getAppointment` / `getAppointmentTool` | `src/services/appointmentLookupService.ts`, `src/tools/appointmentTools.ts` | By id or patient + criteria. Outcomes `found` \| `not_found` \| `multiple_matches`. Read-only; `isActive` only when SCHEDULED (KAN-68) |
+| `bookAppointment` / `bookAppointmentTool` | `src/services/bookingService.ts`, `src/tools/appointmentTools.ts` | Persist only when `confirmed=true` and slot is open via `checkAvailability`. Outcomes `booked` \| `needs_confirmation` \| `slot_unavailable` \| `failed`. `sendConfirmation` stub after success (KAN-69) |
 | `lookupAppointment` | `src/tools/appointmentTools.ts` | Deprecated placeholder |
 
 ## Intended tools (to implement)
 
 | Tool | Must |
 | ---- | ---- |
-| `bookAppointment` | Persist only after confirmation + success |
 | `cancelAppointment` / `rescheduleAppointment` | Update status via repository; resolve target via `getAppointment` |
 
 ## Contract

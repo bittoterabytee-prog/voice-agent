@@ -51,3 +51,12 @@ export function isPostgresForeignKeyError(error: unknown): boolean {
     (error as { code: string }).code === "23503"
   );
 }
+
+export function isPostgresUniqueError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "23505"
+  );
+}

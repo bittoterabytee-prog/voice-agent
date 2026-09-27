@@ -96,12 +96,37 @@ export function toAppointment(row: AppointmentRow): Appointment {
     id: row.id,
     patientId: row.patient_id,
     doctorId: row.doctor_id,
-    appointmentDate: String(row.appointment_date).slice(0, 10),
-    appointmentTime: String(row.appointment_time).slice(0, 8),
+    appointmentDate: formatPgDate(row.appointment_date),
+    appointmentTime: formatPgTime(row.appointment_time),
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function formatPgDate(value: string | Date): string {
+  if (value instanceof Date) {
+    const y = value.getFullYear();
+    const m = String(value.getMonth() + 1).padStart(2, "0");
+    const d = String(value.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})/);
+  if (match) return match[1];
+  return String(value).slice(0, 10);
+}
+
+function formatPgTime(value: string | Date): string {
+  if (value instanceof Date) {
+    const h = String(value.getHours()).padStart(2, "0");
+    const m = String(value.getMinutes()).padStart(2, "0");
+    const s = String(value.getSeconds()).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+  }
+  const raw = String(value);
+  if (/^\d{2}:\d{2}:\d{2}/.test(raw)) return raw.slice(0, 8);
+  if (/^\d{2}:\d{2}$/.test(raw)) return `${raw}:00`;
+  return raw.slice(0, 8);
 }
 
 export function toCall(row: CallRow): Call {
