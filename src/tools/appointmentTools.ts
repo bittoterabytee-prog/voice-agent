@@ -4,6 +4,7 @@ import {
   type IdentifyPatientInput,
   type IdentifyPatientResult,
 } from "../services/patientService";
+import { searchDoctor, type SearchDoctorInput, type SearchDoctorResult } from "../services/doctorService";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -32,5 +33,10 @@ export async function getPatientTool(input: IdentifyPatientInput): Promise<Ident
   return identifyPatient(input);
 }
 
-export { identifyPatient, getPatient };
-export type { IdentifyPatientInput, IdentifyPatientResult };
+/** SRD searchDoctor (KAN-65) — PostgreSQL only; never invents doctors. */
+export async function searchDoctorTool(input: SearchDoctorInput): Promise<SearchDoctorResult> {
+  return searchDoctor(input);
+}
+
+export { identifyPatient, getPatient, searchDoctor };
+export type { IdentifyPatientInput, IdentifyPatientResult, SearchDoctorInput, SearchDoctorResult };
