@@ -68,11 +68,15 @@ describe("PostgreSQL persistence", () => {
     const doctor = await doctorRepository.create({
       name: "Dr. Priya Shah",
       specialization: "Cardiology",
+      department: "Cardiology",
+      gender: "female",
       workingHours: { monday: { start: "09:00", end: "15:00" } },
     });
 
     const stored = await doctorRepository.findById(doctor.id);
     expect(stored?.specialization).toBe("Cardiology");
+    expect(stored?.department).toBe("Cardiology");
+    expect(stored?.availabilityStatus).toBe("AVAILABLE");
     expect(stored?.workingHours.monday).toEqual({ start: "09:00", end: "15:00" });
   });
 
