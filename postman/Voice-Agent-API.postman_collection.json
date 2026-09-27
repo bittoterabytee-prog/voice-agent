@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
     "name": "Voice Agent API",
-    "description": "HTTP APIs for the AI Voice Agent backend (KAN-21).\n\nImport with `postman/Local.postman_environment.json`.\nKeep this collection in sync when adding routes — see `docs/process/POSTMAN.md`.\n\nDo not store API keys or secrets here; the server reads them from env via `getConfig()`.",
+    "description": "HTTP APIs for the AI Voice Agent backend (KAN-21, KAN-72 appointments).\n\nImport with `postman/Local.postman_environment.json`.\nKeep this collection in sync when adding routes — see `docs/process/POSTMAN.md`.\n\nDo not store API keys or secrets here; the server reads them from env via `getConfig()`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -936,6 +936,643 @@
                 }
               ],
               "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"audioBase64 is required\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "POST /api/appointments/patients/identify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+15551234567\",\n  \"name\": \"Demo Patient\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/patients/identify",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"phone\": \"+15551234567\",\n  \"name\": \"Demo Patient\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/patients/identify"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"registered\",\n  \"patient\": { \"id\": \"<uuid>\", \"name\": \"Demo Patient\", \"phone\": \"+15551234567\" },\n  \"patients\": [],\n  \"message\": \"Registered new patient for that phone\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/patients/identify"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Ask the user for their phone number (POC has no caller-ID)\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/appointments/doctors/search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialization\": \"Cardiology\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/doctors/search",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"specialization\": \"Cardiology\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/doctors/search"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"found\",\n  \"doctor\": { \"id\": \"<uuid>\", \"name\": \"Dr. Example\", \"specialization\": \"Cardiology\" },\n  \"doctors\": [],\n  \"message\": \"Doctor found\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/doctors/search"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Provide name, specialization/specialty, department, and/or gender to search doctors\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/appointments/datetime/resolve",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phrase\": \"tomorrow morning\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/datetime/resolve",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"phrase\": \"tomorrow morning\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/datetime/resolve"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"resolved\",\n  \"window\": { \"date\": \"2026-10-15\", \"timeStart\": \"09:00:00\", \"timeEnd\": \"12:00:00\", \"partOfDay\": \"morning\" },\n  \"message\": \"Resolved\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/datetime/resolve"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"phrase is required\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/appointments/availability",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"<doctor-uuid>\",\n  \"window\": {\n    \"date\": \"2026-10-14\",\n    \"timeStart\": \"09:00:00\",\n    \"timeEnd\": \"12:00:00\",\n    \"partOfDay\": \"morning\"\n  },\n  \"callId\": \"<optional-call-uuid>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/availability",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"doctorId\": \"<doctor-uuid>\",\n  \"window\": {\n    \"date\": \"2026-10-14\",\n    \"timeStart\": \"09:00:00\",\n    \"timeEnd\": \"12:00:00\",\n    \"partOfDay\": \"morning\"\n  },\n  \"callId\": \"<optional-call-uuid>\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/availability"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"available\",\n  \"doctorId\": \"<uuid>\",\n  \"date\": \"2026-10-14\",\n  \"slots\": [{ \"date\": \"2026-10-14\", \"time\": \"09:00:00\" }],\n  \"alternatives\": [],\n  \"message\": \"open slots returned\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/availability"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"doctorId is required\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/appointments/lookup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"<appointment-uuid>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/lookup",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"appointmentId\": \"<appointment-uuid>\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/lookup"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"found\",\n  \"appointment\": { \"id\": \"<uuid>\", \"status\": \"SCHEDULED\" },\n  \"appointments\": [],\n  \"isActive\": true,\n  \"message\": \"Appointment found\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/lookup"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Provide appointmentId or patientId to look up appointments\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/appointments/book",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"<patient-uuid>\",\n  \"doctorId\": \"<doctor-uuid>\",\n  \"date\": \"2026-10-14\",\n  \"time\": \"10:00:00\",\n  \"confirmed\": true,\n  \"callId\": \"<optional-call-uuid>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/book",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"patientId\": \"<patient-uuid>\",\n  \"doctorId\": \"<doctor-uuid>\",\n  \"date\": \"2026-10-14\",\n  \"time\": \"10:00:00\",\n  \"confirmed\": true,\n  \"callId\": \"<optional-call-uuid>\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/book"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"booked\",\n  \"confirmation\": {\n    \"appointmentId\": \"<uuid>\",\n    \"doctorName\": \"Dr. Example\",\n    \"date\": \"2026-10-14\",\n    \"time\": \"10:00:00\",\n    \"status\": \"SCHEDULED\"\n  },\n  \"message\": \"Appointment booked\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/book"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"patientId, doctorId, date, and time are required\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/appointments/cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"<appointment-uuid>\",\n  \"patientId\": \"<patient-uuid>\",\n  \"confirmed\": true,\n  \"callId\": \"<optional-call-uuid>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/cancel",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"appointmentId\": \"<appointment-uuid>\",\n  \"patientId\": \"<patient-uuid>\",\n  \"confirmed\": true,\n  \"callId\": \"<optional-call-uuid>\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/cancel"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"cancelled\",\n  \"appointment\": { \"id\": \"<uuid>\", \"status\": \"CANCELLED\" },\n  \"message\": \"Appointment cancelled\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/cancel"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"patientId is required\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "POST /api/appointments/reschedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentId\": \"<appointment-uuid>\",\n  \"patientId\": \"<patient-uuid>\",\n  \"date\": \"2026-10-14\",\n  \"time\": \"11:00:00\",\n  \"confirmed\": true,\n  \"callId\": \"<optional-call-uuid>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/appointments/reschedule",
+            "description": "KAN-72 appointment HTTP API. No secrets in examples."
+          },
+          "response": [
+            {
+              "name": "Success — 200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"appointmentId\": \"<appointment-uuid>\",\n  \"patientId\": \"<patient-uuid>\",\n  \"date\": \"2026-10-14\",\n  \"time\": \"11:00:00\",\n  \"confirmed\": true,\n  \"callId\": \"<optional-call-uuid>\"\n}"
+                },
+                "url": "{{baseUrl}}/api/appointments/reschedule"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"outcome\": \"rescheduled\",\n  \"appointment\": { \"id\": \"<uuid>\", \"appointmentTime\": \"11:00:00\" },\n  \"previous\": { \"date\": \"2026-10-14\", \"time\": \"10:00:00\" },\n  \"message\": \"Appointment rescheduled\"\n}"
+            },
+            {
+              "name": "Fail — 400 VALIDATION_ERROR",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": "{{baseUrl}}/api/appointments/reschedule"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"appointmentId, patientId, date, and time are required\"\n  }\n}"
             }
           ]
         }

@@ -291,24 +291,35 @@ Finish: `CALL_COMPLETED` + `CALL_ENDED`; call status `COMPLETED`.
 
 See [`docs/architecture/CONVERSATION_FLOW.md`](../architecture/CONVERSATION_FLOW.md) and [`docs/voice/WAITING_STATE.md`](../voice/WAITING_STATE.md).
 
-## Planned / domain APIs (not yet exposed)
+## Appointment APIs (KAN-72)
 
-These behaviors exist at the repository/service layer and will be wrapped by HTTP or tool-calling as needed:
+HTTP wrappers around Sprint 4 appointment tools. Business outcomes (`needs_confirmation`, `not_found`, …) return **200** with an `outcome` field. Missing/invalid fields return **400** `VALIDATION_ERROR`. Optional `callId` on mutating/availability routes records `TOOL_CALLED` / `TOOL_FAILED` (KAN-73).
 
-| Capability | Backend entry |
-| ---------- | ------------- |
-| Patient identify / register (`getPatient`) | `identifyPatient` / `getPatientTool` (KAN-64) — ask for phone (no ANI); multi-patient per phone; register when unknown + name |
-| Doctor search (`searchDoctor`) | `searchDoctor` / `searchDoctorTool` (KAN-65) — name/specialty/department/gender; found / multiple / not_found / unavailable |
-| Date/time resolution | `resolveDateTime` / `resolveDateTimeTool` (KAN-66) — IST windows; ambiguous phrases never invent a slot |
-| Availability (`checkAvailability`) | `checkAvailability` / `checkAvailabilityTool` (KAN-67) — working_hours − SCHEDULED; alternatives when empty |
-| Get appointment (`getAppointment`) | `getAppointment` / `getAppointmentTool` (KAN-68) — by id or patient + criteria; read-only; found / not_found / multiple_matches |
-| Book appointment (`bookAppointment`) | `bookAppointment` / `bookAppointmentTool` (KAN-69) — requires confirmed=true + open slot; confirmation payload; never invent success |
-| Cancel appointment (`cancelAppointment`) | `cancelAppointment` / `cancelAppointmentTool` (KAN-70) — single row + patient verify + policy + confirmation; never invent cancel success |
-| Reschedule appointment (`rescheduleAppointment`) | `rescheduleAppointment` / `rescheduleAppointmentTool` (KAN-71) — same id; new slot from checkAvailability + confirmation; stale candidates rejected |
-| Appointment tool logging | Pass `{ callId }` into book/cancel/reschedule/checkAvailability tools → `call_events` `TOOL_CALLED` / `TOOL_FAILED` with `kind: "appointment_tool"` (KAN-73); metadata redacted |
-| Create/find appointment | `appointmentRepository` |
-| Patient / doctor CRUD | respective repositories |
-| Appointment tool for LLM | `lookupAppointment` in `appointmentTools.ts` (placeholder); HTTP wrappers in KAN-72 |
+| Method | Path | Tool |
+| ------ | ---- | ---- |
+| `POST` | `/api/appointments/patients/identify` | `getPatient` / `identifyPatient` |
+| `POST` | `/api/appointments/doctors/search` | `searchDoctor` |
+| `POST` | `/api/appointments/datetime/resolve` | `resolveDateTime` |
+| `POST` | `/api/appointments/availability` | `checkAvailability` |
+| `POST` | `/api/appointments/lookup` | `getAppointment` |
+| `POST` | `/api/appointments/book` | `bookAppointment` (`confirmed` must be `true` to persist) |
+| `POST` | `/api/appointments/cancel` | `cancelAppointment` |
+| `POST` | `/api/appointments/reschedule` | `rescheduleAppointment` |
+
+Example book body:
+
+```json
+{
+  "patientId": "<uuid>",
+  "doctorId": "<uuid>",
+  "date": "2026-10-14",
+  "time": "10:00:00",
+  "confirmed": true,
+  "callId": "<optional-session-call-id>"
+}
+```
+
+Postman: `postman/Voice-Agent-API.postman_collection.json` → **Appointments** folder.
 
 ## Error shape
 
