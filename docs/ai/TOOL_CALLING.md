@@ -11,13 +11,14 @@
 | `getAppointment` / `getAppointmentTool` | `src/services/appointmentLookupService.ts`, `src/tools/appointmentTools.ts` | By id or patient + criteria. Outcomes `found` \| `not_found` \| `multiple_matches`. Read-only; `isActive` only when SCHEDULED (KAN-68) |
 | `bookAppointment` / `bookAppointmentTool` | `src/services/bookingService.ts`, `src/tools/appointmentTools.ts` | Persist only when `confirmed=true` and slot is open via `checkAvailability`. Outcomes `booked` \| `needs_confirmation` \| `slot_unavailable` \| `failed`. `sendConfirmation` stub after success (KAN-69) |
 | `cancelAppointment` / `cancelAppointmentTool` | `src/services/cancelService.ts`, `src/tools/appointmentTools.ts` | Single appointment + patient verify + policy + `confirmed=true`. Outcomes `cancelled` \| `needs_confirmation` \| `not_found` \| `multiple_matches` \| `already_cancelled` \| `not_permitted` \| `failed` (KAN-70) |
+| `rescheduleAppointment` / `rescheduleAppointmentTool` | `src/services/rescheduleService.ts`, `src/tools/appointmentTools.ts` | Same row; new slot via `checkAvailability` + confirmation; stale mid-flow candidates rejected. Outcomes `rescheduled` \| `needs_confirmation` \| `not_found` \| `not_permitted` \| `slot_unavailable` \| `stale_candidate` \| `failed` (KAN-71) |
 | `lookupAppointment` | `src/tools/appointmentTools.ts` | Deprecated placeholder |
 
 ## Intended tools (to implement)
 
 | Tool | Must |
 | ---- | ---- |
-| `rescheduleAppointment` | Availability + confirmation; resolve target via `getAppointment` |
+| _(none for Sprint 4 core tools)_ | HTTP exposure (KAN-72), tool call logging (KAN-73) |
 
 ## Contract
 

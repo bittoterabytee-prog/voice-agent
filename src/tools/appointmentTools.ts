@@ -30,6 +30,11 @@ import {
   type CancelAppointmentInput,
   type CancelAppointmentResult,
 } from "../services/cancelService";
+import {
+  rescheduleAppointment,
+  type RescheduleAppointmentInput,
+  type RescheduleAppointmentResult,
+} from "../services/rescheduleService";
 
 export type AppointmentLookupInput = {
   patientName: string;
@@ -100,6 +105,13 @@ export async function cancelAppointmentTool(
   return cancelAppointment(input);
 }
 
+/** SRD rescheduleAppointment (KAN-71) — same row; new slot from checkAvailability + confirmation. */
+export async function rescheduleAppointmentTool(
+  input: RescheduleAppointmentInput,
+): Promise<RescheduleAppointmentResult> {
+  return rescheduleAppointment(input);
+}
+
 export {
   identifyPatient,
   getPatient,
@@ -110,6 +122,7 @@ export {
   bookAppointment,
   sendConfirmation,
   cancelAppointment,
+  rescheduleAppointment,
 };
 export type {
   IdentifyPatientInput,
@@ -125,4 +138,6 @@ export type {
   BookAppointmentResult,
   CancelAppointmentInput,
   CancelAppointmentResult,
+  RescheduleAppointmentInput,
+  RescheduleAppointmentResult,
 };

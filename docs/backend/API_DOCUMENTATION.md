@@ -304,6 +304,7 @@ These behaviors exist at the repository/service layer and will be wrapped by HTT
 | Get appointment (`getAppointment`) | `getAppointment` / `getAppointmentTool` (KAN-68) — by id or patient + criteria; read-only; found / not_found / multiple_matches |
 | Book appointment (`bookAppointment`) | `bookAppointment` / `bookAppointmentTool` (KAN-69) — requires confirmed=true + open slot; confirmation payload; never invent success |
 | Cancel appointment (`cancelAppointment`) | `cancelAppointment` / `cancelAppointmentTool` (KAN-70) — single row + patient verify + policy + confirmation; never invent cancel success |
+| Reschedule appointment (`rescheduleAppointment`) | `rescheduleAppointment` / `rescheduleAppointmentTool` (KAN-71) — same id; new slot from checkAvailability + confirmation; stale candidates rejected |
 | Create/find appointment | `appointmentRepository` |
 | Patient / doctor CRUD | respective repositories |
 | Appointment tool for LLM | `lookupAppointment` in `appointmentTools.ts` (placeholder); HTTP wrappers in KAN-72 |
