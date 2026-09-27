@@ -1,4 +1,5 @@
 import { LlmService, type LlmMessage } from "../ai/llmService";
+import { runAppointmentToolLoop } from "../ai/appointmentToolLoop";
 import { resolveReplyLanguage } from "../ai/prompts";
 import {
   ConversationService,
@@ -601,11 +602,12 @@ export class VoicePipelineService {
         const { result: llmResult } = await withStageTiming(
           { ...ctx, stage: "llm" },
           () =>
-            this.llm.complete({
+            runAppointmentToolLoop({
+              llm: this.llm,
               messages,
               includeSystemPrompt: true,
-              enableTools: false,
               language: replyLanguage,
+              callId,
             }),
           trace,
         );
@@ -674,11 +676,12 @@ export class VoicePipelineService {
       const { result: llmResult } = await withStageTiming(
         { ...ctx, stage: "llm" },
         () =>
-          this.llm.complete({
+          runAppointmentToolLoop({
+            llm: this.llm,
             messages,
             includeSystemPrompt: true,
-            enableTools: false,
             language: replyLanguage,
+            callId: request.callId,
           }),
         trace,
       );

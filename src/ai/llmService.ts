@@ -112,18 +112,13 @@ export class LlmService {
   }
 
   async complete(request: LlmCompletionRequest): Promise<LlmCompletionResponse> {
-    if (!this.apiKey || !this.provider) {
-      throw new ExternalServiceError("llm", "LLM provider is not configured");
-    }
-
     const messages = this.buildMessages(request);
-    const model = this.model?.trim() || "gpt-4o-mini";
 
-    if (this.provider.toLowerCase() !== "openai") {
-      throw new ExternalServiceError("llm", `LLM provider "${this.provider}" is not supported`);
-    }
-
-    return this.completeOpenAi(messages, model, Boolean(request.enableTools));
+    return this.completeOpenAiMessages({
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      enableTools: Boolean(request.enableTools),
+      tools: APPOINTMENT_TOOL_DEFINITIONS,
+    });
   }
 
   buildMessages(request: LlmCompletionRequest): LlmMessage[] {
@@ -159,17 +154,29 @@ export class LlmService {
     return messages;
   }
 
-  private async completeOpenAi(
-    messages: LlmMessage[],
-    model: string,
-    enableTools: boolean,
-  ): Promise<LlmCompletionResponse> {
+  /**
+   * Low-level OpenAI chat completion used by the appointment tool loop (KAN-111).
+   * Accepts provider message shapes including assistant tool_calls and tool results.
+   */
+  async completeOpenAiMessages(input: {
+    messages: Array<Record<string, unknown>>;
+    enableTools?: boolean;
+    tools?: typeof APPOINTMENT_TOOL_DEFINITIONS;
+  }): Promise<LlmCompletionResponse> {
+    if (!this.apiKey || !this.provider) {
+      throw new ExternalServiceError("llm", "LLM provider is not configured");
+    }
+    if (this.provider.toLowerCase() !== "openai") {
+      throw new ExternalServiceError("llm", `LLM provider "${this.provider}" is not supported`);
+    }
+
+    const model = this.model?.trim() || "gpt-4o-mini";
     const body: Record<string, unknown> = {
       model,
-      messages,
+      messages: input.messages,
     };
-    if (enableTools) {
-      body.tools = APPOINTMENT_TOOL_DEFINITIONS;
+    if (input.enableTools) {
+      body.tools = input.tools ?? APPOINTMENT_TOOL_DEFINITIONS;
     }
 
     let response: Response;

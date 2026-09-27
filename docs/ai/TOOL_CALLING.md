@@ -18,7 +18,8 @@
 
 | Tool | Must |
 | ---- | ---- |
-| _(HTTP exposure)_ | Appointment HTTP APIs + Postman (KAN-72) |
+| _(done)_ | Appointment HTTP APIs + Postman (KAN-72) |
+| _(done)_ | Voice appointment tool loop (KAN-111) |
 
 ## Contract
 
@@ -27,12 +28,18 @@
 3. LLM must surface tool errors honestly to the user.
 4. Patient identity for the browser POC: ask the user for **phone** first. Missing phone → `ValidationError`. Unknown phone without name → `needs_name` (ask for name, then register).
 
-## LLM tool-calling prep (KAN-12)
+## LLM tool loop on voice turn (KAN-111)
 
-`src/ai/llmTools.ts` exports OpenAI-style definitions (`check_availability`, `book_appointment`, `lookup_appointment`).
-`LlmService.complete({ enableTools: true })` attaches them to the chat request and may return `toolCalls` with parsed arguments.
+`src/ai/llmTools.ts` defines OpenAI tools aligned with appointment APIs (`identify_patient`, `search_doctor`, `resolve_datetime`, `check_availability`, `get_appointment`, `book_appointment`, `cancel_appointment`, `reschedule_appointment`).
 
-**Not yet in this ticket:** executing those tool calls or looping tool results back into the model. Callers must still invoke `src/tools/*` (or future tool runners) against PostgreSQL — never treat a model tool suggestion as a confirmed booking.
+`runAppointmentToolLoop` (`src/ai/appointmentToolLoop.ts`) is used by `VoicePipelineService` on `/api/voice/turn`:
+
+1. LLM may return `toolCalls`.
+2. `executeAppointmentToolCall` runs the matching `appointmentTools` entry (with optional `callId`).
+3. Tool JSON is fed back as OpenAI `tool` messages until a final text reply (max 6 rounds).
+4. Mutating tools only persist when `confirmed: true`.
+
+Never treat a model tool suggestion alone as a confirmed booking — only tool/DB outcomes.
 
 ## Logging
 

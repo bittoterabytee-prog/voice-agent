@@ -22,8 +22,13 @@ function mockStt(text: string): SttService {
 }
 
 function mockLlm(text: string): LlmService {
+  const complete = vi.fn(async () => ({ text }));
   return {
-    complete: vi.fn(async () => ({ text })),
+    complete,
+    buildMessages: vi.fn((request: { messages?: Array<{ role: string; content: string }> }) => {
+      return request.messages ?? [{ role: "user", content: "hello" }];
+    }),
+    completeOpenAiMessages: vi.fn(async () => ({ text })),
   } as unknown as LlmService;
 }
 
@@ -91,6 +96,12 @@ describe("KAN-14 realtime voice conversation pipeline", () => {
     const stt = mockStt("hello");
     const llm = {
       complete: vi.fn(async () => {
+        throw new ExternalServiceError("llm", "LLM provider is unavailable");
+      }),
+      buildMessages: vi.fn((request: { messages?: Array<{ role: string; content: string }> }) => {
+        return request.messages ?? [{ role: "user", content: "hello" }];
+      }),
+      completeOpenAiMessages: vi.fn(async () => {
         throw new ExternalServiceError("llm", "LLM provider is unavailable");
       }),
     } as unknown as LlmService;
