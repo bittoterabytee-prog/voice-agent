@@ -15,6 +15,8 @@ export type CheckAvailabilityInput = {
   window: ResolvedTimeWindow;
   /** Slot length in minutes (default 30). */
   slotMinutes?: number;
+  /** When rescheduling, ignore this appointment's current slot (KAN-71). */
+  excludeAppointmentId?: string | null;
 };
 
 export type CheckAvailabilityResult = {
@@ -115,6 +117,7 @@ async function openSlotsForDay(
   windowStart: string,
   windowEnd: string,
   slotMinutes: number,
+  excludeAppointmentId?: string | null,
 ): Promise<AvailabilitySlot[]> {
   if (doctor.availabilityStatus !== "AVAILABLE") {
     return [];
@@ -131,7 +134,11 @@ async function openSlotsForDay(
     slotMinutes,
   );
   const booked = await appointmentRepository.listScheduledByDoctorDate(doctor.id, dateYmd);
-  const bookedTimes = new Set(booked.map((a) => normalizeHhmm(a.appointmentTime)));
+  const bookedTimes = new Set(
+    booked
+      .filter((a) => !excludeAppointmentId || a.id !== excludeAppointmentId)
+      .map((a) => normalizeHhmm(a.appointmentTime)),
+  );
   return subtractBooked(candidates, bookedTimes);
 }
 
@@ -174,6 +181,7 @@ export async function checkAvailability(
     normalizeHhmm(input.window.timeStart),
     normalizeHhmm(input.window.timeEnd),
     slotMinutes,
+    input.excludeAppointmentId,
   );
 
   if (slots.length > 0) {
@@ -197,6 +205,7 @@ export async function checkAvailability(
       normalizeHhmm(input.window.timeStart),
       normalizeHhmm(input.window.timeEnd),
       slotMinutes,
+      input.excludeAppointmentId,
     );
     for (const slot of daySlots) {
       if (alternatives.length >= 6) break;

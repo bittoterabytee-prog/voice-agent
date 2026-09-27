@@ -99,6 +99,34 @@ export class AppointmentRepository {
     );
     return result.rows[0] ? toAppointment(result.rows[0]) : null;
   }
+
+  /** Move date/time on the same row (KAN-71 reschedule). Status stays SCHEDULED. */
+  async updateSchedule(
+    id: string,
+    appointmentDate: string,
+    appointmentTime: string,
+  ): Promise<Appointment | null> {
+    try {
+      const result = await getPool().query(
+        `UPDATE appointments
+         SET appointment_date = $2::date,
+             appointment_time = $3,
+             updated_at = NOW()
+         WHERE id = $1
+           AND status = 'SCHEDULED'
+         RETURNING *`,
+        [id, appointmentDate, appointmentTime],
+      );
+      return result.rows[0] ? toAppointment(result.rows[0]) : null;
+    } catch (error) {
+      if (isPostgresForeignKeyError(error)) {
+        throw new InvalidRelationshipError(
+          "Appointment references a patient or doctor that does not exist",
+        );
+      }
+      throw error;
+    }
+  }
 }
 
 export const appointmentRepository = new AppointmentRepository();
